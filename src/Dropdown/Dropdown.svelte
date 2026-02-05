@@ -76,6 +76,9 @@
   /** Specify the helper text */
   export let helperText = "";
 
+  /** Set to `true` to use the read-only variant */
+  export let readonly = false
+
   /**
    * Specify the list box label.
    * @type {string}
@@ -424,9 +427,10 @@
       {size === 'xl' && 'bx--dropdown--xl'}
       {inline && 'bx--dropdown--inline'}
       {disabled && 'bx--dropdown--disabled'}
-      {light && 'bx--dropdown--light'}"
+      {light && 'bx--dropdown--light'}
+      {readonly && 'bx--dropdown--readonly'}"
     on:click={({ target }) => {
-      if (disabled) return;
+      if (disabled || readonly) return;
       open = ref.contains(target) ? !open : false;
     }}
     {disabled}
@@ -451,10 +455,13 @@
       class:bx--list-box__field={true}
       tabindex="0"
       aria-expanded={open}
+      aria-disabled={readonly ? true : undefined}
       on:keydown={(e) => {
         if (["Enter", "ArrowDown", "ArrowUp"].includes(e.key)) {
           e.preventDefault();
         }
+
+        if (readonly) return
 
         if (e.key === "Enter") {
           open = !open;
@@ -514,7 +521,7 @@
       <ListBoxMenuIcon
         on:click={(e) => {
           e.stopPropagation();
-          if (disabled) return;
+          if (disabled || readonly) return;
           open = !open;
         }}
         {translateWithId}
