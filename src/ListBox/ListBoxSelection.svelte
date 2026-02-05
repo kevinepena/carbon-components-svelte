@@ -16,6 +16,9 @@
   /** Set to `true` to disable the list box selection */
   export let disabled = false;
 
+  /** Set to `true` to use the read-only variant */
+  export let readonly = false
+
   /** Default translation ids */
   export const translationIds = {
     clearAll: "clearAll",
@@ -80,6 +83,7 @@
         }
       }}
       {disabled}
+      aria-disabled={readonly ? true : undefined}
       aria-label={buttonLabel}
       title={description}
     >

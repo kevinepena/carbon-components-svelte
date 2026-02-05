@@ -27,7 +27,7 @@
    * Override the display of a multiselect item.
    * @type {(item: Item) => any}
    */
-  export let itemToString = (item) => item.text ?? item.id;
+  export let itemToString = (item) => item.text || item.id;
 
   /**
    * Override the item name, title, labelText, or value passed to the user-selectable checkbox input as well as the hidden inputs.
@@ -145,6 +145,9 @@
 
   /** Set an id for the list box component */
   export let id = `ccs-${Math.random().toString(36)}`;
+
+  /** Set to `true` to use the read-only variant */
+  export let readonly = false
 
   /**
    * Specify a name attribute for the select.
@@ -351,6 +354,27 @@
     }
   });
 
+  const onClick = (evt) => {
+    // NOTE: does not prevent click
+    if (disabled) return;
+    if (readonly) {
+      evt.preventDefault();
+      // focus on the element as per readonly input behavior
+      console.log(evt.target)
+      multiSelectRef.focus();
+    } else {
+      open = true;
+    }
+  }
+
+  const onKeyDown = (evt) => {
+    const selectAccessKeys = ['ArrowDown', 'ArrowUp', ' ', 'Enter'];
+    // This prevents the select from opening for the above keys
+    if (readonly && selectAccessKeys.includes(evt.key)) {
+      evt.preventDefault();
+    }
+  }
+
   function sort() {
     if (
       selectionFeedback === "top" ||
@@ -384,7 +408,7 @@
   $: menuId = `menu-${id}`;
   $: comboId = `combo-${id}`;
   $: inline = type === "inline";
-  $: ariaLabel = $$props["aria-label"] ?? "Choose an item";
+  $: ariaLabel = $$props["aria-label"] || "Choose an item";
   $: if (
     selectedIds &&
     (selectionFeedback === "top" ||
@@ -477,6 +501,7 @@
       {filterable && 'bx--multi-select--filterable'}
       {invalid && 'bx--multi-select--invalid'}
       {inline && 'bx--multi-select--inline'}
+      {readonly && 'bx--multi-select--readonly'}
       {checked.length > 0 && 'bx--multi-select--selected'}"
   >
     {#if invalid}
@@ -491,9 +516,11 @@
       <div class:bx--list-box__field={true}>
         {#if checked.length > 0}
           <ListBoxSelection
+            {readonly}
             selectionCount={checked.length}
             on:clear
             on:clear={() => {
+              if (readonly) return
               selectedIds = [];
               sortedItems = sortedItems.map((item) => ({
                 ...item,
@@ -521,12 +548,10 @@
           class:bx--text-input={true}
           class:bx--text-input--empty={value === ""}
           class:bx--text-input--light={light}
-          on:click={() => {
-            if (disabled) return;
-            open = true;
-          }}
+          on:click={onClick}
           on:keydown
           on:keydown|stopPropagation={({ key }) => {
+            if (readonly) return
             if (key === "Enter") {
               if (highlightedId) {
                 const filteredItemIndex = sortedItems.findIndex(
@@ -564,6 +589,7 @@
           on:blur
           on:paste
           {disabled}
+          {readonly}
           {placeholder}
           {id}
           {name}
@@ -578,6 +604,7 @@
         {/if}
         {#if value}
           <ListBoxSelection
+            {readonly}
             on:clear={() => {
               value = "";
               open = false;
@@ -605,10 +632,7 @@
         aria-activedescendant={highlightedId}
         aria-controls={open ? menuId : undefined}
         aria-owns={open ? menuId : undefined}
-        on:click={() => {
-          if (disabled) return;
-          open = !open;
-        }}
+        on:click={onClick}
         on:keydown={(e) => {
           const key = e.key;
           if ([" ", "ArrowUp", "ArrowDown"].includes(key)) {
@@ -640,6 +664,7 @@
         }}
         {id}
         {disabled}
+        {readonly}
         {translateWithId}
       >
         {#if checked.length > 0}
@@ -655,6 +680,7 @@
             }}
             translateWithId={translateWithIdSelection}
             {disabled}
+            {readonly}
           />
         {/if}
         <span class:bx--list-box__label={true}>{label}</span>
