@@ -1,0 +1,26 @@
+@import 'carbon-components/scss/globals/scss/vars';
+@import 'carbon-components/scss/globals/scss/helper-mixins';
+@import 'carbon-components/scss/globals/scss/vendor/@carbon/elements/scss/import-once/import-once';
+
+/// Readonly datepicker styles
+/// @access private
+/// @group datepicker
+@mixin datepicker-readonly {
+  //----------------------------------------------
+  // Read-only
+  // ---------------------------------------------
+  .#{$prefix}--date-picker__input[readonly] {
+    background: transparent;
+    border-block-end-color: $border-subtle;
+    cursor: text;
+  }
+
+  .#{$prefix}--date-picker__input[readonly] + .#{$prefix}--date-picker__icon {
+    fill: $icon-disabled;
+  }
+
+}
+
+@include exports('datepicker-readonly') {
+  @include datepicker-readonly;
+}
