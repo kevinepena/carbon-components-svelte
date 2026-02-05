@@ -176,6 +176,18 @@ Disable the select menu to prevent interaction.
   <SelectItem value="g100" text="Gray 100" />
 </Select>
 
+## Read only
+
+Display a non-editable value by setting `readonly` to `true`.
+
+<Select readonly labelText="Carbon theme" selected="g10" >
+  <SelectItem value="white" text="White" />
+  <SelectItem value="g10" text="Gray 10" />
+  <SelectItem value="g80" text="Gray 80" />
+  <SelectItem value="g90" text="Gray 90" />
+  <SelectItem value="g100" text="Gray 100" />
+</Select>
+
 ## Skeleton
 
 Display a loading state using the skeleton variant.

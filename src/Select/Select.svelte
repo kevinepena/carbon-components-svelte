@@ -64,6 +64,9 @@
   /** Set to `true` to mark the field as required */
   export let required = false;
 
+  /** Set to `true` to use the read-only variant */
+  export let readonly = false
+
   import { afterUpdate, createEventDispatcher, setContext } from "svelte";
   import { writable } from "svelte/store";
   import ChevronDown from "../icons/ChevronDown.svelte";
@@ -115,6 +118,23 @@
     selectedValue.set(value);
   };
 
+  const onMouseDown = (evt) => {
+    // NOTE: does not prevent click
+    if (readonly) {
+      evt.preventDefault();
+      // focus on the element as per readonly input behavior
+      evt.target.focus();
+    }
+  }
+
+  const onKeyDown = (evt) => {
+    const selectAccessKeys = ['ArrowDown', 'ArrowUp', ' '];
+    // This prevents the select from opening for the above keys
+    if (readonly && selectAccessKeys.includes(evt.key)) {
+      evt.preventDefault();
+    }
+  }
+
   let prevSelected = undefined;
 
   afterUpdate(() => {
@@ -142,6 +162,7 @@
     class:bx--select--invalid={invalid}
     class:bx--select--disabled={disabled}
     class:bx--select--warning={warn}
+    class:bx--select--readonly={readonly}
   >
     {#if !noLabel && (labelText || $$slots.labelChildren)}
       <label
@@ -171,6 +192,7 @@
                   ? helperId
                   : undefined}
             aria-invalid={invalid || undefined}
+            aria-readonly={readonly || undefined}
             disabled={disabled || undefined}
             required={required || undefined}
             {id}
@@ -180,6 +202,8 @@
             class:bx--select-input--xl={size === "xl"}
             {...$$restProps}
             on:change={handleChange}
+            on:mousedown={onMouseDown}
+            on:keydown={onKeyDown}
             on:change
             on:input
             on:focus
@@ -224,6 +248,7 @@
               : helperText
                 ? helperId
                 : undefined}
+          aria-readonly={readonly || undefined}
           disabled={disabled || undefined}
           required={required || undefined}
           aria-invalid={invalid || undefined}
@@ -232,6 +257,8 @@
           class:bx--select-input--xl={size === "xl"}
           {...$$restProps}
           on:change={handleChange}
+          on:mousedown={onMouseDown}
+          on:keydown={onKeyDown}
           on:change
           on:input
           on:focus
