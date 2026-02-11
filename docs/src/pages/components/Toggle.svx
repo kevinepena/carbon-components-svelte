@@ -60,6 +60,12 @@ Set `disabled` to `true` to prevent user interaction.
 
 <Toggle labelText="Push notifications" disabled />
 
+## Read only state
+
+Display a non-editable value by setting `readonly` to `true`.
+
+<Toggle readonly toggled labelText="Push Notifications" />
+
 ## Small size
 
 Use the small size variant by setting `size` to `"sm"`.
