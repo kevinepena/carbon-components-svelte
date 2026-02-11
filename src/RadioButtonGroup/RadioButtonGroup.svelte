@@ -45,6 +45,9 @@
   /** Specify the helper text */
   export let helperText = "";
 
+  /** Set to `true` to use the read-only variant */
+  export let readonly = false
+
   /**
    * Specify the label position.
    * @type {"right" | "left"}
@@ -69,7 +72,7 @@
     onMount,
     setContext,
   } from "svelte";
-  import { readonly, writable } from "svelte/store";
+  import { readonly as readOnly, writable } from "svelte/store";
 
   const dispatch = createEventDispatcher();
   /**
@@ -92,15 +95,17 @@
    * @type {(value: string | number) => void}
    */
   const update = (value) => {
+    if (readonly) return
     selected = value;
   };
 
   setContext("RadioButtonGroup", {
     selectedValue,
-    groupName: readonly(groupName),
-    groupRequired: readonly(groupRequired),
+    groupName: readOnly(groupName),
+    groupRequired: readOnly(groupRequired),
     add,
     update,
+    readonly
   });
 
   onMount(() => {
@@ -108,16 +113,19 @@
   });
 
   beforeUpdate(() => {
+    if (readonly) return
     $selectedValue = selected;
   });
 
   selectedValue.subscribe((value) => {
+    if (readonly) return
     selected = value;
     dispatch("change", value);
   });
 
   $: $groupName = name;
   $: $groupRequired = required;
+
 </script>
 
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
@@ -136,6 +144,7 @@
     class:bx--radio-button-group--vertical={orientation === "vertical"}
     class:bx--radio-button-group--label-left={labelPosition === "left"}
     class:bx--radio-button-group--label-right={labelPosition === "right"}
+    class:bx--radio-button-group--readonly={readonly}
     {disabled}
   >
     {#if legendText || $$slots.legendChildren}

@@ -49,7 +49,7 @@
 
   const ctx = getContext("RadioButtonGroup");
 
-  const { add, update, selectedValue, groupName, groupRequired } = ctx ?? {
+  const { add, update, selectedValue, groupName, groupRequired, readonly } = ctx ?? {
     groupName: readable(undefined),
     groupRequired: readable(undefined),
     selectedValue: readable(checked ? value : undefined),
@@ -145,12 +145,18 @@
     name={$groupName ?? name}
     {checked}
     {disabled}
+    {readonly}
     required={$groupRequired ?? required}
     {value}
     class:bx--radio-button={true}
     on:focus
     on:blur
     on:change
+    on:click={(e) => {
+      if (readonly) {
+        e.preventDefault();
+      }
+    }}
     on:change={(e) => {
       if (update) {
         // Inside RadioButtonGroup - use context
