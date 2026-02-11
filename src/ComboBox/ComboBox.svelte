@@ -80,6 +80,9 @@
   /** Set to `true` to open the combobox menu dropdown */
   export let open = false;
 
+  /** Set to `true` to use the read-only variant */
+  export let readonly = false
+
   /**
    * Set to `true` to allow custom values that are not in the items list.
    * By default, user-entered text is cleared when the combobox loses focus without selecting an item.
@@ -236,6 +239,7 @@
    * ```
    */
   export async function clear(options = {}) {
+    if (readonly) return
     prevSelectedId = null;
     highlightedIndex = -1;
     highlightedId = undefined;
@@ -489,8 +493,10 @@
     </label>
   {/if}
   <ListBox
-    class="bx--combo-box {direction === 'top' &&
-      'bx--list-box--up'} {!invalid && warn && 'bx--combo-box--warning'}"
+    class="bx--combo-box
+      {direction === 'top' && 'bx--list-box--up'}
+      {!invalid && warn && 'bx--combo-box--warning'}
+      {readonly && 'bx--combo-box--readonly'}"
     id={comboId}
     aria-label={ariaLabel}
     {disabled}
@@ -515,9 +521,11 @@
         aria-activedescendant={highlightedId}
         aria-labelledby={comboId}
         aria-disabled={disabled}
+        aria-readonly={readonly}
         aria-controls={open ? menuId : undefined}
         aria-owns={open ? menuId : undefined}
         {disabled}
+        {readonly}
         {placeholder}
         {id}
         {name}
@@ -526,7 +534,7 @@
         class:bx--text-input--light={light}
         class:bx--text-input--empty={value === ""}
         on:click={() => {
-          if (disabled) return;
+          if (disabled || readonly) return;
           open = true;
         }}
         on:input
@@ -542,6 +550,7 @@
         }}
         on:keydown
         on:keydown|stopPropagation={(e) => {
+          if (readonly) return
           const { key } = e;
           if (["Enter", "ArrowDown", "ArrowUp"].includes(key)) {
             e.preventDefault();
@@ -622,7 +631,7 @@
       {/if}
       <ListBoxMenuIcon
         on:click={(e) => {
-          if (disabled) return;
+          if (disabled || readonly) return;
           e.stopPropagation();
           open = !open;
         }}
