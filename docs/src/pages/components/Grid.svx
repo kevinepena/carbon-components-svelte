@@ -2,34 +2,22 @@
 components: ["Grid", "Row", "Column"]
 ---
 
-<script>
-  import { UnorderedList, ListItem } from "carbon-components-svelte";
-  import Preview from "../../components/Preview.svelte";
-</script>
-
-The `Grid` system provides a responsive layout structure that adapts to different
-screen sizes. Use `Row` and `Column` components to create flexible layouts. The
+The [Carbon grid system](https://carbondesignsystem.com/elements/2x-grid/overview/) provides a responsive layout structure that adapts to different
+screen sizes. Use row and column components to create flexible layouts. The
 grid supports various spacing options and column configurations.
 
-## Grid System Overview
+The system uses a responsive column structure where the total number of columns changes based on screen size:
 
-The Carbon grid system uses a **responsive column structure** where the total
-number of columns changes based on screen size:
+- **Small (sm)**: 0-671px — 4 columns
+- **Medium (md)**: 672-1055px — 8 columns
+- **Large (lg)**: 1056-1311px — 16 columns
+- **X-Large (xlg)**: 1312-1583px — 16 columns
+- **Max (max)**: 1584px and above — 16 columns
 
-<UnorderedList svx-ignore style="margin-bottom: var(--cds-spacing-08)">
-  <ListItem><strong>Small (sm)</strong>: 0-671px — 4 columns</ListItem>
-  <ListItem><strong>Medium (md)</strong>: 672-1055px — 8 columns</ListItem>
-  <ListItem><strong>Large (lg)</strong>: 1056-1311px — 16 columns</ListItem>
-  <ListItem><strong>X-Large (xlg)</strong>: 1312-1583px — 16 columns</ListItem>
-  <ListItem><strong>Max (max)</strong>: 1584px and above — 16 columns</ListItem>
-</UnorderedList>
-
-**Important:** Column spans are relative to the total columns at each breakpoint.
-For example, to create a full-width column, use `sm={4} md={8} lg={16}` - not the
+> [!NOTE]
+> Column spans are relative to the total columns at each breakpoint.
+For example, to create a full-width column, use `sm={4} md={8} lg={16}` instead of the
 same value across all breakpoints.
-
-For more details, see the
-[Carbon Design System Grid documentation](https://carbondesignsystem.com/elements/2x-grid/overview/).
 
 ## Default
 
@@ -106,7 +94,7 @@ content alignment across different column widths.
 ## Padding
 
 Add vertical padding (top/bottom) to grid elements using the `padding` prop. You can
-apply padding at the `Grid`, `Row`, or `Column` level to control spacing between rows
+apply padding at the grid, row, or column level to control spacing between rows
 of content. This is useful for creating vertical rhythm without manually adding margins.
 
 <FileSource src="/framed/Grid/PaddedGrid" />
@@ -116,13 +104,11 @@ of content. This is useful for creating vertical rhythm without manually adding 
 Understanding [breakpoints](/components/Breakpoint) is critical for creating responsive layouts. Each breakpoint
 has specific pixel ranges and column counts:
 
-<UnorderedList svx-ignore style="margin-bottom: var(--cds-spacing-08)">
-  <ListItem><strong>Small (sm)</strong>: 0-671px — 4 columns — Mobile phones</ListItem>
-  <ListItem><strong>Medium (md)</strong>: 672-1055px — 8 columns — Tablets, small laptops</ListItem>
-  <ListItem><strong>Large (lg)</strong>: 1056-1311px — 16 columns — Desktop monitors, laptops</ListItem>
-  <ListItem><strong>X-Large (xlg)</strong>: 1312-1583px — 16 columns — Large desktop monitors</ListItem>
-  <ListItem><strong>Max (max)</strong>: 1584px and above — 16 columns — Extra-large displays</ListItem>
-</UnorderedList>
+- **Small (sm)**: 0-671px — 4 columns — Mobile phones
+- **Medium (md)**: 672-1055px — 8 columns — Tablets, small laptops
+- **Large (lg)**: 1056-1311px — 16 columns — Desktop monitors, laptops
+- **X-Large (xlg)**: 1312-1583px — 16 columns — Large desktop monitors
+- **Max (max)**: 1584px and above — 16 columns — Extra-large displays
 
 When designing responsive layouts, start with mobile (sm) and work your
 way up to ensure your content works well at all sizes.

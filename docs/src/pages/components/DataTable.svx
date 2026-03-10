@@ -3,21 +3,14 @@ components: ["DataTable", "Pagination","Toolbar", "ToolbarContent", "ToolbarSear
 ---
 
 <script>
-  import { InlineNotification, DataTable, DataTableSkeleton, Pagination, Toolbar, ToolbarContent, ToolbarSearch, ToolbarMenu, ToolbarMenuItem, Button, Link } from "carbon-components-svelte";
+  import { DataTable, DataTableSkeleton, Pagination, Toolbar, ToolbarContent, ToolbarSearch, ToolbarMenu, ToolbarMenuItem, Button, Link } from "carbon-components-svelte";
   import Launch from "carbon-icons-svelte/lib/Launch.svelte";
-  import Preview from "../../components/Preview.svelte";
 </script>
 
-`DataTable` displays structured data in a tabular format. Use it to present large datasets with features like sorting, filtering, pagination, and row selection.
+Data tables display structured data in a tabular format. Use them to present large datasets with features like sorting, filtering, pagination, virtualization, and row selection.
 
-<InlineNotification svx-ignore lowContrast title="Note:" kind="info" hideCloseButton>
-  <div class="body-short-01">
-    This component is keyed for performance.
-    
-    Every <strong>headers</strong> object must have a unique "key" property.
-    <div class="body-short-01">Every <strong>rows</strong> object must have a unique "id" property.</div>
-  </div>
-</InlineNotification>
+> [!NOTE]
+> This component is keyed for performance. Every **headers** object must have a unique "key" property. Every **rows** object must have a unique "id" property.
 
 ## Default
 
@@ -335,9 +328,8 @@ title="Load balancers" description="Your organization's active load balancers."
 
 Specify `width` or `minWidth` in the `headers` object to set column dimensions. This applies a fixed table layout.
 
-<InlineNotification svx-ignore lowContrast kind="warning" title="Note:" hideCloseButton>
-  <div class="body-short-01">Custom column widths do not work with a <a class="bx--link" href="#sticky-header">sticky header</a>.</div>
-</InlineNotification>
+> [!WARNING]
+> Custom column widths do not work with a [sticky header](#sticky-header).
 
 <FileSource src="/framed/DataTable/DataTableHeaderWidth" />
 
@@ -361,6 +353,32 @@ Set `stickyHeader` to `true` to fix the header in place. This adds a maximum hei
     rule: i % 3 ? "Round robin" : "DNS delegation",
   }))}
 />
+
+## Virtualized rows (large datasets)
+
+Virtualization renders only the rows currently visible in the viewport, improving performance for large datasets. Set `virtualize={true}` to enable. The header stays visible while scrolling (sticky positioning is applied automatically). Use `stickyHeader={true}` for the intended layout, if necessary. Container height defaults to 10 rows (`itemHeight * maxVisibleRows`).
+
+The example below shows 10,000 rows with a filterable toolbar; only visible rows are rendered in the DOM.
+
+<FileSource src="/framed/DataTable/VirtualizedDataTable" />
+
+## Virtualized rows (custom overscan)
+
+Overscanning renders extra rows above and below the viewport for smoother scrolling. The default overscan value is 3. Specify a custom `overscan` to control how many extra rows are rendered.
+
+<FileSource src="/framed/DataTable/VirtualizeOverscan" />
+
+## Virtualized rows (custom row height)
+
+By default, the virtual row height matches the table size variant (48px medium, 24px compact, 32px short, 64px tall). Use `rowClass` to apply a custom row height via CSS and set `itemHeight` to match for correct virtualization.
+
+<FileSource src="/framed/DataTable/VirtualizeRowHeight" />
+
+## Virtualized rows (custom max visible rows)
+
+By default, the table shows 10 rows in the viewport. Customize `maxVisibleRows` to control how many rows are visible at once. Container height is calculated as `itemHeight * maxVisibleRows`, or use `containerHeight` for pixel-based control.
+
+<FileSource src="/framed/DataTable/VirtualizeMaxVisibleRows" />
 
 ## With toolbar
 
@@ -570,7 +588,7 @@ Set `selectable` to `true` to enable selectable rows. Here, the toolbar is used 
 
 Set `shouldFilterRows` to `true` to enable client-side filtering. The default filter performs string comparisons on cell values.
 
-For pagination with filtering, bind to `filteredRowIds` and pass its length to `Pagination`'s `totalItems`.
+For pagination with filtering, bind to `filteredRowIds` and pass its length to the pagination component's `totalItems`.
 
 <FileSource src="/framed/DataTable/DataTableFilterable" />
 
@@ -636,6 +654,12 @@ Set `zebra` to `true` to add alternating row colors.
     },
   ]}"
 />
+
+## Custom row classes
+
+Use `rowClass` to apply custom CSS classes to rows. Pass a string for a static class, or a function that receives `{ row, rowIndex, selected, expanded }` and returns conditional classes. Try selecting and expanding rows to see the custom styles.
+
+<FileSource src="/framed/DataTable/DataTableRowClass" />
 
 ## Tall rows
 
@@ -922,9 +946,90 @@ Set `sortable` to `true` to enable column sorting. Disable sorting on specific c
   ]}"
 />
 
+## Sortable (sort always)
+
+Sortable columns support three directions: `none` (unsorted, original row order), `ascending`, and `descending`. Clicking a column header cycles through them in order.
+
+By default, a third click on a sorted column unsorts it (`none` restores the original row order).
+
+Set `sortAlways` to `true` to skip the unsorted state so the column always remains sorted. The first click goes to `ascending`; subsequent clicks alternate between `ascending` and `descending` (no `none`).
+
+<DataTable sortable sortAlways
+  headers="{[
+    { key: "name", value: "Name" },
+    { key: "protocol", value: "Protocol" },
+    { key: "port", value: "Port" },
+    { key: "rule", value: "Rule" }
+  ]}"
+  rows="{[
+    {
+      id: "a",
+      name: "Load Balancer 3",
+      protocol: "HTTP",
+      port: 3000,
+      rule: "Round robin"
+    },
+    {
+      id: "b",
+      name: "Load Balancer 1",
+      protocol: "HTTP",
+      port: 443,
+      rule: "Round robin"
+    },
+    {
+      id: "c",
+      name: "Load Balancer 2",
+      protocol: "HTTP",
+      port: 80,
+      rule: "DNS delegation"
+    },
+    {
+      id: "d",
+      name: "Load Balancer 6",
+      protocol: "HTTP",
+      port: 3000,
+      rule: "Round robin"
+    },
+    {
+      id: "e",
+      name: "Load Balancer 4",
+      protocol: "HTTP",
+      port: 443,
+      rule: "Round robin"
+    },
+    {
+      id: "f",
+      name: "Load Balancer 5",
+      protocol: "HTTP",
+      port: 80,
+      rule: "DNS delegation"
+    },
+  ]}"
+/>
+
+## Sortable (per-column sortAlways)
+
+Use `sortAlways` on individual headers to control which columns allow unsorting. In this transaction log, the Date column always stays sorted (chronological order is required for audit trails), while Amount and Status can be unsorted.
+
+<DataTable sortable title="Recent transactions"
+  headers="{[
+    { key: 'date', value: 'Date', sortAlways: true },
+    { key: 'description', value: 'Description' },
+    { key: 'amount', value: 'Amount' },
+    { key: 'status', value: 'Status', sortAlways: false }
+  ]}"
+  rows="{[
+    { id: '1', date: '2025-03-05', description: 'Cloud hosting', amount: 149.00, status: 'Paid' },
+    { id: '2', date: '2025-03-04', description: 'Domain renewal', amount: 12.99, status: 'Paid' },
+    { id: '3', date: '2025-03-03', description: 'API subscription', amount: 49.00, status: 'Pending' },
+    { id: '4', date: '2025-03-02', description: 'SSL certificate', amount: 0, status: 'Paid' },
+    { id: '5', date: '2025-03-01', description: 'Backup storage', amount: 24.50, status: 'Failed' }
+  ]}"
+/>
+
 ## Sortable with pagination
 
-Bind to `pageSize` and `page` props of `Pagination` and pass them to `DataTable`.
+Bind to `pageSize` and `page` props of the pagination component and pass them to the data table.
 
 <FileSource src="/framed/DataTable/DataTablePagination" />
 
@@ -1134,7 +1239,7 @@ Use `nonSelectableRowIds` to prevent selection of specific rows.
 
 ## Expandable rows
 
-Set `expandable` to `true` to make rows expandable. Use the `expanded-row` slot to customize expanded content.
+Set `expandable` to `true` to make rows expandable. Use the `expandedRow` slot to customize expanded content.
 
 <DataTable expandable
   headers="{[
@@ -1188,10 +1293,16 @@ Set `expandable` to `true` to make rows expandable. Use the `expanded-row` slot 
     },
   ]}"
 >
-  <svelte:fragment slot="expanded-row" let:row>
+  <svelte:fragment slot="expandedRow" let:row>
     <pre>{JSON.stringify(row, null, 2)}</pre>
   </svelte:fragment>
 </DataTable>
+
+## Custom expand icon
+
+Use the `expandIcon` slot to customize the expand/collapse icon. The slot receives `expanded` (whether the row is expanded), `row` (the row data, or `undefined` for the header expand-all button), and `props` (object with `aria-hidden` and `class` to spread onto your icon).
+
+<FileSource src="/framed/DataTable/DataTableExpandIcon" />
 
 ## Non-expandable rows
 
@@ -1261,7 +1372,7 @@ Set `size="compact"` for expandable rows with minimal height.
     },
   ]}"
 >
-  <svelte:fragment slot="expanded-row" let:row>
+  <svelte:fragment slot="expandedRow" let:row>
     <pre>{JSON.stringify(row, null, 2)}</pre>
   </svelte:fragment>
 </DataTable>
@@ -1322,7 +1433,7 @@ Set `size="short"` for expandable rows with compact height.
     },
   ]}"
 >
-  <svelte:fragment slot="expanded-row" let:row>
+  <svelte:fragment slot="expandedRow" let:row>
     <pre>{JSON.stringify(row, null, 2)}</pre>
   </svelte:fragment>
 </DataTable>
@@ -1383,7 +1494,7 @@ Set `size="tall"` for expandable rows with increased height.
     },
   ]}"
 >
-  <svelte:fragment slot="expanded-row" let:row>
+  <svelte:fragment slot="expandedRow" let:row>
     <pre>{JSON.stringify(row, null, 2)}</pre>
   </svelte:fragment>
 </DataTable>
@@ -1444,7 +1555,7 @@ Set `batchExpansion` to `true` to expand and collapse all rows at once.
     },
   ]}"
 >
-  <svelte:fragment slot="expanded-row" let:row>
+  <svelte:fragment slot="expandedRow" let:row>
     <pre>{JSON.stringify(row, null, 2)}</pre>
   </svelte:fragment>
 </DataTable>
@@ -1457,7 +1568,7 @@ Combine `batchExpansion` and `batchSelection` for tables with both expandable an
 
 ## Skeleton
 
-Use `DataTableSkeleton` to show a loading state.
+Use the data table skeleton to show a loading state.
 
 <DataTableSkeleton />
 

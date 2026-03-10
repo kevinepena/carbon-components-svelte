@@ -1,5 +1,6 @@
 <script>
   /**
+   * @generics {Icon = any} Icon
    * @event {null} open
    * @event {null} close
    */
@@ -9,15 +10,15 @@
 
   /**
    * Specify the icon to render when the action panel is closed.
-   * @type {any}
+   * @type {Icon}
    */
-  export let icon = Switcher;
+  export let icon = /** @type {Icon} */ (Switcher);
 
   /**
    * Specify the icon to render when the action panel is open.
-   * @type {any}
+   * @type {Icon}
    */
-  export let closeIcon = Close;
+  export let closeIcon = /** @type {Icon} */ (Close);
 
   /**
    * Specify the text displayed next to the icon.
@@ -116,12 +117,12 @@
       <svelte:component this={closeIcon} size={20} />
     </slot>
   {:else}
-    <slot name="icon">
-      <svelte:component this={icon} size={20} />
-    </slot>
+    <slot name="icon"> <svelte:component this={icon} size={20} /> </slot>
   {/if}
   <slot name="textChildren">
-    {#if text}<span class:bx--header__action-text={true}>{text}</span>{/if}
+    {#if text}
+      <span class:bx--header__action-text={true}>{text}</span>
+    {/if}
   </slot>
 </button>
 {#if isOpen}

@@ -8,8 +8,13 @@ on:
     branches: [master]
     paths-ignore:
       - "**.md"
+      - "docs/**"
       - "examples/**"
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -27,6 +32,7 @@ jobs:
       - run: bunx biome ci --error-on-warnings
 
   test-svelte4:
+    needs: [lint]
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v6
@@ -34,15 +40,42 @@ jobs:
       - run: bun ci
 
       - name: Generate types
-        run: bun build:docs
+        run: bun run build:docs
 
       - name: Test Svelte 4 Types
         run: bun run test:types
 
       - name: Test Svelte 4
-        run: bun run test
+        run: bun --bun run test
+
+  test-e2e:
+    needs: [lint]
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+      - run: bun ci
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v5
+        with:
+          path: ~/Library/Caches/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('node_modules/@playwright/test/package.json') }}
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: bunx playwright install --with-deps chromium
+
+      - name: Install Playwright OS dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: bunx playwright install-deps chromium
+
+      - name: E2E tests
+        run: bun run test:e2e
 
   test-svelte3:
+    needs: [lint]
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v6
@@ -55,7 +88,7 @@ jobs:
           bun ci
 
       - name: Generate types
-        run: bun build:docs
+        run: bun run build:docs
 
       - name: Test Svelte 3 Types
         run: |
@@ -65,9 +98,10 @@ jobs:
       - name: Test Svelte 3
         run: |
           cd tests-svelte3
-          bun run test
+          bun --bun run test
 
   test-svelte5:
+    needs: [lint]
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v6
@@ -80,7 +114,7 @@ jobs:
           bun ci
 
       - name: Generate types
-        run: bun build:docs
+        run: bun run build:docs
 
       - name: Test Svelte 5 Types
         run: |
@@ -90,7 +124,7 @@ jobs:
       - name: Test Svelte 5
         run: |
           cd tests-svelte5
-          bun run test
+          bun --bun run test
 
   types:
     runs-on: macos-15
@@ -100,17 +134,12 @@ jobs:
       - run: bun ci
 
       - name: Build docs
-        run: bun build:docs
+        run: bun run build:docs
 
-      - run: bun test:src-types
-      - run: bun test:types
+      - run: bun run test:src-types
 
   deploy-docs:
     if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/master'
     needs: [lint, test-svelte4, types]
-    runs-on: macos-15
-    steps:
-      - name: Trigger deploy
-        env:
-          deploy_url: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
-        run: curl -f "$deploy_url"
+    uses: ./.github/workflows/deploy-docs.yml
+    secrets: inherit

@@ -37,6 +37,8 @@ $css--plex: true;
 @import "./stack";
 @import "./contained-list";
 @import "./number-input";
+@import "./ui-shell";
+@import "./tabs";
 
 // The default theme is "white" (White)
 :root {

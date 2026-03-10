@@ -1,0 +1,37 @@
+<script>
+  import { FloatingPortal } from "carbon-components-svelte";
+</script>
+
+Floating portals build on [Portal](/components/Portal) by rendering content into `document.body` and positioning it relative to an anchor element. The `anchor` prop is required and specifies the element to position the floating content relative to. They automatically flip direction when there is not enough space and reposition on scroll and resize.
+
+Use a portal when you only need to escape overflow and z-index stacking contexts. Use floating portals when you need anchored, positioned content such as dropdowns, popovers, or overflow menus.
+
+In the examples below, click the button to toggle the floating content and drag the tile to move the anchor. The floating content will track the anchor position.
+
+## Default
+
+Position floating content below an anchor element.
+
+<FileSource src="/framed/FloatingPortal/FloatingPortalBasic" />
+
+## Direction
+
+Set the `direction` prop to `"top"` or `"bottom"` to control the preferred direction. The component will flip to the opposite direction if there is not enough space.
+
+The default direction is `"bottom"`.
+
+<FileSource src="/framed/FloatingPortal/FloatingPortalDirection" />
+
+## Escaping overflow
+
+Because the floating content is rendered into `document.body`, it escapes parent containers with `overflow: hidden`.
+
+<FileSource src="/framed/FloatingPortal/FloatingPortalOverflow" />
+
+## Slot direction
+
+By default, the floating content is rendered below the anchor element. However, if there is not enough space below the anchor element, the component will automatically flip to the opposite direction.
+
+Use the `direction` slot prop to read the actual rendered direction after auto-flipping for conditional logic, like styles.
+
+<FileSource src="/framed/FloatingPortal/FloatingPortalSlotDirection" />

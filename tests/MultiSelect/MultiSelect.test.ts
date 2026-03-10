@@ -7,6 +7,7 @@ import { user } from "../setup-tests";
 import MultiSelectLabelSlot from "./MultiSelect.slot.test.svelte";
 import MultiSelect from "./MultiSelect.test.svelte";
 import MultiSelectGenerics from "./MultiSelectGenerics.test.svelte";
+import MultiSelectInModal from "./MultiSelectInModal.test.svelte";
 import MultiSelectSlot from "./MultiSelectSlot.test.svelte";
 
 const items = [
@@ -1437,7 +1438,8 @@ describe("MultiSelect", () => {
       expect(firstCheckbox).toBeDefined();
 
       // Get the current checked state
-      const wasChecked = (firstCheckbox as HTMLInputElement).checked;
+      expect.assert(firstCheckbox instanceof HTMLInputElement);
+      const wasChecked = firstCheckbox.checked;
 
       // Click the checkbox to toggle it
       await user.click(firstCheckbox);
@@ -1448,9 +1450,8 @@ describe("MultiSelect", () => {
       await waitFor(() => {
         const updatedCheckboxes = screen.getAllByRole("checkbox");
         const firstUpdatedCheckbox = updatedCheckboxes[0];
-        expect((firstUpdatedCheckbox as HTMLInputElement).checked).toBe(
-          !wasChecked,
-        );
+        expect.assert(firstUpdatedCheckbox instanceof HTMLInputElement);
+        expect(firstUpdatedCheckbox.checked).toBe(!wasChecked);
       });
     });
 
@@ -1524,9 +1525,10 @@ describe("MultiSelect", () => {
       // Verify the item is selected - check if any checkbox is checked
       await waitFor(() => {
         const checkboxes = screen.getAllByRole("checkbox");
-        const checkedCheckboxes = checkboxes.filter(
-          (cb) => (cb as HTMLInputElement).checked,
-        );
+        const checkedCheckboxes = checkboxes.filter((cb) => {
+          expect.assert(cb instanceof HTMLInputElement);
+          return cb.checked;
+        });
         expect(checkedCheckboxes.length).toBeGreaterThan(0);
 
         // Also verify we can find Item 2 if it's visible
@@ -1535,7 +1537,8 @@ describe("MultiSelect", () => {
           return label?.textContent?.trim() === "Item 2";
         });
         if (item2Checkbox) {
-          expect((item2Checkbox as HTMLInputElement).checked).toBe(true);
+          expect.assert(item2Checkbox instanceof HTMLInputElement);
+          expect(item2Checkbox.checked).toBe(true);
         }
       });
     });
@@ -1690,6 +1693,63 @@ describe("MultiSelect", () => {
       // Should have max-height style applied
       expect(menu.style.maxHeight).toBeTruthy();
       expect(menu.style.overflowY).toBe("auto");
+    });
+  });
+
+  describe("portalMenu", () => {
+    afterEach(() => {
+      const existingPortals = document.querySelectorAll(
+        "[data-floating-portal]",
+      );
+      for (const portal of existingPortals) {
+        portal.remove();
+      }
+    });
+
+    it("should render menu in FloatingPortal when portalMenu is true", () => {
+      render(MultiSelect, {
+        props: {
+          items: [
+            { id: "0", text: "Slack" },
+            { id: "1", text: "Email" },
+          ],
+          portalMenu: true,
+          open: true,
+        },
+      });
+
+      const menu = screen.getByRole("listbox");
+      expect(menu).toBeInTheDocument();
+      const floatingPortal = menu.closest("[data-floating-portal]");
+      expect(floatingPortal).toBeInTheDocument();
+      expect(floatingPortal?.parentElement).toBe(document.body);
+    });
+
+    it("should render menu in FloatingPortal when inside Modal (portalMenu not passed)", () => {
+      render(MultiSelectInModal, {
+        props: { modalOpen: true, multiSelectOpen: true },
+      });
+
+      const menu = screen.getByRole("listbox");
+      expect(menu).toBeInTheDocument();
+      const floatingPortal = menu.closest("[data-floating-portal]");
+      expect(floatingPortal).toBeInTheDocument();
+      expect(floatingPortal?.parentElement).toBe(document.body);
+    });
+
+    it("should not render menu in FloatingPortal when inside Modal with portalMenu=false", () => {
+      render(MultiSelectInModal, {
+        props: {
+          modalOpen: true,
+          multiSelectOpen: true,
+          portalMenu: false,
+        },
+      });
+
+      const menu = screen.getByRole("listbox");
+      expect(menu).toBeInTheDocument();
+      const floatingPortal = menu.closest("[data-floating-portal]");
+      expect(floatingPortal).not.toBeInTheDocument();
     });
   });
 });

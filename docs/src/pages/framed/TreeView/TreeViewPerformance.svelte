@@ -25,20 +25,20 @@
         for (let k = 0; k < 10; k++) {
           subcategoryNodes.push({
             id: idCounter++,
-            text: "Item " + i + "-" + j + "-" + k,
+            text: `Item ${i}-${j}-${k}`,
           });
         }
 
         categoryNodes.push({
           id: idCounter++,
-          text: "Subcategory " + i + "-" + j,
+          text: `Subcategory ${i}-${j}`,
           nodes: subcategoryNodes,
         });
       }
 
       nodes.push({
         id: idCounter++,
-        text: "Category " + i,
+        text: `Category ${i}`,
         nodes: categoryNodes,
       });
     }
@@ -53,7 +53,7 @@
     function createNestedNode(depth, maxDepth) {
       const node = {
         id: idCounter++,
-        text: "Level " + depth,
+        text: `Level ${depth}`,
       };
       lastId = node.id;
 
@@ -136,31 +136,32 @@
   }
 </script>
 
-<Stack gap={4}>
-    <ContentSwitcher {selectedIndex} on:change={handleTreeSwitch}>
-      <Switch text="Large Tree (1000+ nodes)" />
-      <Switch text="Deep Tree (100 levels)" />
-    </ContentSwitcher>
+<Stack gap={6}>
+  <ContentSwitcher {selectedIndex} on:change={handleTreeSwitch}>
+    <Switch text="Large Tree (1000+ nodes)" />
+    <Switch text="Deep Tree (100 levels)" />
+  </ContentSwitcher>
 
-    <ButtonSet>
-      <Button on:click={handleExpandAll}>Expand All</Button>
-      <Button on:click={handleCollapseAll}>Collapse All</Button>
-      <Button on:click={handleShowNode}>Show Deep Node</Button>
-    </ButtonSet>
+  <ButtonSet>
+    <Button on:click={handleExpandAll}>Expand All</Button>
+    <Button on:click={handleCollapseAll}>Collapse All</Button>
+    <Button on:click={handleShowNode}>Show Deep Node</Button>
+  </ButtonSet>
 
-    {#if performanceInfo.expandAll > 0 || performanceInfo.collapseAll > 0 || performanceInfo.showNode > 0}
-      <Stack gap={2}>
-        <div>Expand All: {performanceInfo.expandAll.toFixed(2)}ms</div>
-        <div>Collapse All: {performanceInfo.collapseAll.toFixed(2)}ms</div>
-        <div>Show Node: {performanceInfo.showNode.toFixed(2)}ms</div>
-      </Stack>
-    {/if}
-
-  <TreeView
-    bind:this={treeview}
-    labelText={treeType === "large"
-      ? "Large Tree (1000+ nodes)"
-      : "Deep Tree (100 levels)"}
-    {nodes}
-  />
+  {#if performanceInfo.expandAll > 0 || performanceInfo.collapseAll > 0 || performanceInfo.showNode > 0}
+    <Stack gap={2}>
+      <div>Expand All: {performanceInfo.expandAll.toFixed(2)}ms</div>
+      <div>Collapse All: {performanceInfo.collapseAll.toFixed(2)}ms</div>
+      <div>Show Node: {performanceInfo.showNode.toFixed(2)}ms</div>
+    </Stack>
+  {/if}
+  <div>
+    <TreeView
+      bind:this={treeview}
+      labelText={treeType === "large"
+        ? "Large Tree (1000+ nodes)"
+        : "Deep Tree (100 levels)"}
+      {nodes}
+    />
+  </div>
 </Stack>

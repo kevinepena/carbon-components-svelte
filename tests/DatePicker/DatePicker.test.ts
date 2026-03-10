@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/svelte";
 import { tick } from "svelte";
 import { user } from "../setup-tests";
 import DatePicker from "./DatePicker.test.svelte";
+import DatePickerInModal from "./DatePickerInModal.test.svelte";
 import DatePickerInputSlot from "./DatePickerInput.slot.test.svelte";
 import DatePickerRange from "./DatePickerRange.test.svelte";
 
@@ -194,10 +195,203 @@ describe("DatePicker", () => {
     expect(inputEnd).toHaveValue("");
   });
 
+  // Regression test for https://github.com/carbon-design-system/carbon-components-svelte/issues/893
+  it("syncs both inputs when range values are programmatically updated", async () => {
+    const { rerender } = render(DatePickerRange, {
+      props: {
+        valueFrom: "01/01/2024",
+        valueTo: "12/31/2024",
+      },
+    });
+
+    const inputStart = screen.getByLabelText("Start date");
+    const inputEnd = screen.getByLabelText("End date");
+
+    await user.click(inputStart);
+    expect(
+      await screen.findByLabelText("calendar-container"),
+    ).toBeInTheDocument();
+    expect(inputStart).toHaveValue("01/01/2024");
+    expect(inputEnd).toHaveValue("12/31/2024");
+
+    // Simulate programmatic update (e.g., from a month filter).
+    rerender({ valueFrom: "01/01/2024", valueTo: "01/31/2024" });
+    await tick();
+
+    expect(inputStart).toHaveValue("01/01/2024");
+    expect(inputEnd).toHaveValue("01/31/2024");
+
+    // Update again to verify continued sync.
+    rerender({ valueFrom: "03/01/2024", valueTo: "03/31/2024" });
+    await tick();
+
+    expect(inputStart).toHaveValue("03/01/2024");
+    expect(inputEnd).toHaveValue("03/31/2024");
+  });
+
   it("supports custom label slot for DatePickerInput", () => {
     render(DatePickerInputSlot);
 
     const customLabel = screen.getByText("Custom label content");
     expect(customLabel).toBeInTheDocument();
+  });
+
+  // Regression tests for https://github.com/carbon-design-system/carbon-components-svelte/issues/1362
+  describe("pattern derived from dateFormat", () => {
+    it("derives a default pattern matching the default dateFormat (m/d/Y)", () => {
+      render(DatePicker);
+
+      const input = screen.getByLabelText("Date");
+      expect(input).toHaveAttribute("pattern", "\\d{1,2}\\/\\d{1,2}\\/\\d{4}");
+    });
+
+    it("derives pattern for Y-m-d dateFormat", () => {
+      render(DatePicker, { dateFormat: "Y-m-d" });
+
+      const input = screen.getByLabelText("Date");
+      expect(input).toHaveAttribute("pattern", "\\d{4}-\\d{1,2}-\\d{1,2}");
+    });
+
+    it("derives pattern for d.m.Y dateFormat", () => {
+      render(DatePicker, { dateFormat: "d.m.Y" });
+
+      const input = screen.getByLabelText("Date");
+      expect(input).toHaveAttribute("pattern", "\\d{1,2}\\.\\d{1,2}\\.\\d{4}");
+    });
+
+    it("derives pattern for d/m/y dateFormat (2-digit year)", () => {
+      render(DatePicker, { dateFormat: "d/m/y" });
+
+      const input = screen.getByLabelText("Date");
+      expect(input).toHaveAttribute("pattern", "\\d{1,2}\\/\\d{1,2}\\/\\d{2}");
+    });
+
+    it("derives pattern for M j, Y dateFormat (text month)", () => {
+      render(DatePicker, { dateFormat: "M j, Y" });
+
+      const input = screen.getByLabelText("Date");
+      expect(input).toHaveAttribute("pattern", "\\w+ \\d{1,2}, \\d{4}");
+    });
+
+    it("allows explicit pattern override on DatePickerInput", () => {
+      render(DatePicker, {
+        dateFormat: "Y-m-d",
+        pattern: "\\d{4}-\\d{2}-\\d{2}",
+      });
+
+      const input = screen.getByLabelText("Date");
+      expect(input).toHaveAttribute("pattern", "\\d{4}-\\d{2}-\\d{2}");
+    });
+
+    it("derived pattern validates Y-m-d formatted values", () => {
+      render(DatePicker, { dateFormat: "Y-m-d" });
+
+      const input = screen.getByLabelText("Date");
+      const pattern = input.getAttribute("pattern");
+      const re = new RegExp(`^${pattern}$`);
+      expect(re.test("2026-02-10")).toBe(true);
+      expect(re.test("02/10/2026")).toBe(false);
+    });
+
+    it("derived pattern validates m/d/Y formatted values", () => {
+      render(DatePicker);
+
+      const input = screen.getByLabelText("Date");
+      const pattern = input.getAttribute("pattern");
+      const re = new RegExp(`^${pattern}$`);
+      expect(re.test("02/10/2026")).toBe(true);
+      expect(re.test("2026-02-10")).toBe(false);
+    });
+
+    // Regression test for https://github.com/carbon-design-system/carbon-components-svelte/issues/2689
+    // The HTML pattern attribute is evaluated with the `u` (Unicode) flag.
+    // Escaped hyphens (`\-`) are invalid in Unicode mode and cause a SyntaxError,
+    // which makes native form validation always fail.
+    it.each([
+      ["m/d/Y", "02/10/2026"],
+      ["Y-m-d", "2026-02-10"],
+      ["d.m.Y", "10.02.2026"],
+      ["d/m/y", "10/02/26"],
+      ["M j, Y", "Feb 10, 2026"],
+    ])("derived pattern for %s is valid with the Unicode (u) flag", (dateFormat, sampleValue) => {
+      render(DatePicker, { dateFormat });
+
+      const input = screen.getByLabelText("Date");
+      const pattern = input.getAttribute("pattern");
+      expect(pattern).toBeTruthy();
+
+      // This is how browsers evaluate the HTML pattern attribute.
+      const re = new RegExp(`^(?:${pattern})$`, "u");
+      expect(re.test(sampleValue)).toBe(true);
+    });
+  });
+
+  describe("portalMenu", () => {
+    afterEach(() => {
+      // Clean up any flatpickr calendars appended to document.body.
+      for (const el of document.body.querySelectorAll(".flatpickr-calendar")) {
+        el.remove();
+      }
+    });
+
+    it("renders calendar inside the date picker wrapper by default", async () => {
+      const { container } = render(DatePicker, {
+        datePickerType: "single",
+      });
+
+      const input = screen.getByLabelText("Date");
+      await user.click(input);
+
+      const calendar = await screen.findByLabelText("calendar-container");
+      const wrapper = container.querySelector(".bx--date-picker");
+      expect(wrapper?.contains(calendar)).toBe(true);
+      expect(calendar.classList.contains("static")).toBe(true);
+    });
+
+    it("renders calendar at document.body when portalMenu is true", async () => {
+      const { container } = render(DatePicker, {
+        datePickerType: "single",
+        portalMenu: true,
+      });
+
+      const input = screen.getByLabelText("Date");
+      await user.click(input);
+
+      const calendar = await screen.findByLabelText("calendar-container");
+      const wrapper = container.querySelector(".bx--date-picker");
+      expect(wrapper?.contains(calendar)).toBe(false);
+      expect(document.body.contains(calendar)).toBe(true);
+      expect(calendar.classList.contains("static")).toBe(false);
+    });
+
+    it("renders calendar at document.body when inside Modal (portalMenu not passed)", async () => {
+      const { container } = render(DatePickerInModal, {
+        modalOpen: true,
+      });
+
+      const input = screen.getByLabelText("Date");
+      await user.click(input);
+
+      const calendar = await screen.findByLabelText("calendar-container");
+      const wrapper = container.querySelector(".bx--date-picker");
+      expect(wrapper?.contains(calendar)).toBe(false);
+      expect(document.body.contains(calendar)).toBe(true);
+      expect(calendar.classList.contains("static")).toBe(false);
+    });
+
+    it("renders calendar inside wrapper when inside Modal with portalMenu=false", async () => {
+      const { container } = render(DatePickerInModal, {
+        modalOpen: true,
+        portalMenu: false,
+      });
+
+      const input = screen.getByLabelText("Date");
+      await user.click(input);
+
+      const calendar = await screen.findByLabelText("calendar-container");
+      const wrapper = container.querySelector(".bx--date-picker");
+      expect(wrapper?.contains(calendar)).toBe(true);
+      expect(calendar.classList.contains("static")).toBe(true);
+    });
   });
 });

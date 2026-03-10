@@ -5,10 +5,9 @@ components: ["Tooltip", "TooltipFooter"]
 <script>
   import { Tooltip, TooltipFooter, Link, Button } from "carbon-components-svelte";
   import Catalog from "carbon-icons-svelte/lib/Catalog.svelte";
-  import Preview from "../../components/Preview.svelte";
 </script>
 
-`Tooltip` displays contextual information when users hover over or focus on an element. It supports various directions, alignments, and interactive content to provide additional context or guidance.
+Tooltips display contextual information when users hover over or focus on an element. They support various directions, alignments, and interactive content to provide additional context or guidance.
 
 ## Default
 
@@ -55,7 +54,7 @@ Align the tooltip content using the `align` prop.
 
 ## Interactive
 
-Add interactive elements like links and buttons using `TooltipFooter`.
+Add interactive elements like links and buttons using the tooltip footer.
 
 <Tooltip triggerText="Resource list">
   <p>
@@ -85,6 +84,18 @@ Customize the icon using the `icon` slot for more flexibility.
   <div slot="icon" style="width: 1rem; height: 1rem; outline: 1px solid red;"></div>
   <p>
     Resources are provisioned based on your account's organization.
+  </p>
+</Tooltip>
+
+## Custom delay
+
+The tooltip has a hover delay to avoid accidental opening. The default enter delay is 100ms and default leave delay is 300ms.
+
+Customize the enter and leave delay using `enterDelayMs` and `leaveDelayMs`.
+
+<Tooltip triggerText="Slow open" enterDelayMs={500} leaveDelayMs={200}>
+  <p>
+    This tooltip has a 500ms enter delay and a 200ms leave delay.
   </p>
 </Tooltip>
 

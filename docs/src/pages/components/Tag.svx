@@ -5,10 +5,9 @@ components: ["Tag", "TagSkeleton"]
 <script>
   import { Tag, TooltipDefinition } from "carbon-components-svelte";
   import IbmCloud from "carbon-icons-svelte/lib/IbmCloud.svelte";
-  import Preview from "../../components/Preview.svelte";
 </script>
 
-`Tag` provides a way to categorize content with a keyword or label. It supports various styles, sizes, and interactive states, including filterable and interactive variants.
+Tags provide a way to categorize content with a keyword or label. They support various styles, sizes, and interactive states, including filterable and interactive variants.
 
 ## Default
 
@@ -56,6 +55,18 @@ Disable a filterable tag to prevent interaction.
 Combine the filterable variant with the small size.
 
 <Tag size="sm" filter on:close>carbon-components</Tag>
+
+## Filterable with click and close
+
+Filterable tags forward `on:click` from the tag body and `on:close` from the close button. Click the tag body to select; click the close icon to remove.
+
+<Tag
+filter
+on:click={() => console.log("click")}
+on:close={() => console.log("close")}
+>
+carbon-components
+</Tag>
 
 ## Custom icon
 

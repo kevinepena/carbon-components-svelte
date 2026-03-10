@@ -3,6 +3,9 @@ on:
     tags:
       - "v*"
 
+env:
+  IBM_TELEMETRY_DISABLED: true
+
 jobs:
   release:
     runs-on: macos-15
@@ -21,7 +24,7 @@ jobs:
         run: bun ci
 
       - name: Build docs
-        run: bun build:docs
+        run: bun run build:docs
 
       - name: Prune package.json
         run: bunx culls --preserve=svelte

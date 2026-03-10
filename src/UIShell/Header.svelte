@@ -1,4 +1,8 @@
 <script>
+  /**
+   * @generics {Icon = any} Icon
+   */
+
   /** Set to `false` to hide the side nav by default */
   export let expandedByDefault = true;
 
@@ -62,15 +66,15 @@
 
   /**
    * Specify the icon to render for the closed state.
-   * @type {any}
+   * @type {Icon}
    */
-  export let iconMenu = Menu;
+  export let iconMenu = /** @type {Icon} */ (Menu);
 
   /**
    * Specify the icon to render for the opened state.
-   * @type {any}
+   * @type {Icon}
    */
-  export let iconClose = Close;
+  export let iconClose = /** @type {Icon} */ (Close);
 
   /**
    * Specify the ARIA label for the hamburger menu.
@@ -82,7 +86,7 @@
   import Close from "../icons/Close.svelte";
   import Menu from "../icons/Menu.svelte";
   import HamburgerMenu from "./HamburgerMenu.svelte";
-  import { shouldRenderHamburgerMenu } from "./navStore";
+  import { shouldRenderHamburgerMenu } from "./nav-store";
 
   /** @type {undefined | number} */
   let winWidth = undefined;

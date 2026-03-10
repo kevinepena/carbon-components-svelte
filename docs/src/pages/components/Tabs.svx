@@ -4,10 +4,12 @@ components: ["Tabs", "Tab", "TabContent", "TabsSkeleton"]
 
 <script>
   import { Tabs, Tab, TabContent, TabsSkeleton } from "carbon-components-svelte";
-  import Preview from "../../components/Preview.svelte";
+  import Calendar from "carbon-icons-svelte/lib/Calendar.svelte";
+  import Information from "carbon-icons-svelte/lib/Information.svelte";
+  import Settings from "carbon-icons-svelte/lib/Settings.svelte";
 </script>
 
-`Tabs` provides a way to organize content into separate views that can be switched between. It supports keyboard navigation, disabled states, and various layout options.
+Tabs provide a way to organize content into separate views that can be switched between. They support keyboard navigation, disabled states, and various layout options.
 
 ## Default
 
@@ -39,6 +41,21 @@ By default, each tab has a fixed width of `10rem`. Set `autoWidth` to `true` for
   </svelte:fragment>
 </Tabs>
 
+## Full-width
+
+Set `fullWidth` to `true` for tabs to evenly span the full width of the container.
+
+<Tabs fullWidth>
+  <Tab label="Tab label 1" />
+  <Tab label="Tab label 2" />
+  <Tab label="Tab label 3" />
+  <svelte:fragment slot="content">
+    <TabContent>Content 1</TabContent>
+    <TabContent>Content 2</TabContent>
+    <TabContent>Content 3</TabContent>
+  </svelte:fragment>
+</Tabs>
+
 ## Reactive example
 
 Use `bind:selected` to create a two-way binding with the selected tab index. This allows you to programmatically control the selected tab and react to tab changes.
@@ -55,7 +72,7 @@ If the current selected tab is removed, the next tab will be selected.
 
 ## Disabled tabs
 
-Set `disabled` to `true` on a `Tab` component to prevent interaction. Keyboard navigation will skip disabled tabs.
+Set `disabled` to `true` on a tab component to prevent interaction. Keyboard navigation will skip disabled tabs.
 
 <Tabs>
   <Tab label="Tab label 1" />
@@ -70,9 +87,24 @@ Set `disabled` to `true` on a `Tab` component to prevent interaction. Keyboard n
   </svelte:fragment>
 </Tabs>
 
+## With icons
+
+Use the `icon` prop to render an icon next to the tab label. The icon is rendered to the right of the label.
+
+<Tabs>
+  <Tab label="Calendar" icon={Calendar} />
+  <Tab label="Information" icon={Information} />
+  <Tab label="Settings" icon={Settings} disabled />
+  <svelte:fragment slot="content">
+    <TabContent>Calendar content</TabContent>
+    <TabContent>Information content</TabContent>
+    <TabContent>Settings content</TabContent>
+  </svelte:fragment>
+</Tabs>
+
 ## Container type
 
-Use the container type for a more prominent tab interface.
+Use the container type for a more prominent tab interface. By default, container types have an auto-width.
 
 <Tabs type="container">
   <Tab label="Tab label 1" />
@@ -82,6 +114,123 @@ Use the container type for a more prominent tab interface.
     <TabContent>Content 1</TabContent>
     <TabContent>Content 2</TabContent>
     <TabContent>Content 3</TabContent>
+  </svelte:fragment>
+</Tabs>
+
+## Container type (full width)
+
+Combine `type="container"` with `fullWidth` for container tabs that evenly span the full width of the container.
+
+<Tabs type="container" fullWidth>
+  <Tab label="Tab label 1" />
+  <Tab label="Tab label 2" />
+  <Tab label="Tab label 3" />
+  <svelte:fragment slot="content">
+    <TabContent>Content 1</TabContent>
+    <TabContent>Content 2</TabContent>
+    <TabContent>Content 3</TabContent>
+  </svelte:fragment>
+</Tabs>
+
+## Container type (disabled)
+
+Container type tabs with disabled states. Set `disabled` to `true` on individual tabs to prevent interaction.
+
+<Tabs type="container">
+  <Tab label="Tab label 1" />
+  <Tab label="Tab label 2" disabled />
+  <Tab label="Tab label 3" disabled />
+  <Tab label="Tab label 4" />
+  <svelte:fragment slot="content">
+    <TabContent>Content 1</TabContent>
+    <TabContent>Content 2</TabContent>
+    <TabContent>Content 3</TabContent>
+    <TabContent>Content 4</TabContent>
+  </svelte:fragment>
+</Tabs>
+
+## Container type with icons
+
+Container type tabs also support the `icon` prop.
+
+<Tabs type="container">
+  <Tab label="Calendar" icon={Calendar} />
+  <Tab label="Information" icon={Information} />
+  <Tab label="Settings" icon={Settings} disabled />
+  <svelte:fragment slot="content">
+    <TabContent>Calendar content</TabContent>
+    <TabContent>Information content</TabContent>
+    <TabContent>Settings content</TabContent>
+  </svelte:fragment>
+</Tabs>
+
+## Container type (secondary label)
+
+Use `secondaryLabel` with container type tabs to display additional context below the primary label.
+
+<Tabs type="container">
+  <Tab label="Engage" secondaryLabel="(21/25)" />
+  <Tab label="Analyze" secondaryLabel="(12/16)" />
+  <Tab label="Remediate" secondaryLabel="(0/7)" />
+  <Tab label="Assets" secondaryLabel="(4/12)" />
+  <Tab label="Monitoring" secondaryLabel="(0/10)" disabled />
+  <svelte:fragment slot="content">
+    <TabContent>Engage content</TabContent>
+    <TabContent>Analyze content</TabContent>
+    <TabContent>Remediate content</TabContent>
+    <TabContent>Assets content</TabContent>
+    <TabContent>Monitoring content</TabContent>
+  </svelte:fragment>
+</Tabs>
+
+## Container type (one secondary label)
+
+When only some tabs use `secondaryLabel`, the container still applies the taller min-height so all tab items align. Only tabs with a secondary label show the two-line layout.
+
+<Tabs type="container">
+  <Tab label="Overview" />
+  <Tab label="Details" secondaryLabel="(3)" />
+  <Tab label="Settings" />
+  <svelte:fragment slot="content">
+    <TabContent>Overview content</TabContent>
+    <TabContent>Details content</TabContent>
+    <TabContent>Settings content</TabContent>
+  </svelte:fragment>
+</Tabs>
+
+## Container type (`secondaryChildren` slot)
+
+Use the `secondaryChildren` slot to customize the secondary label with custom markup (e.g. `<strong>` for emphasis).
+
+<Tabs type="container">
+  <Tab label="Engage">
+    <strong slot="secondaryChildren">(21/25)</strong>
+  </Tab>
+  <Tab label="Analyze">
+    <strong slot="secondaryChildren">(12/16)</strong>
+  </Tab>
+  <Tab label="Remediate">
+    <strong slot="secondaryChildren">(0/7)</strong>
+  </Tab>
+  <svelte:fragment slot="content">
+    <TabContent>Engage content</TabContent>
+    <TabContent>Analyze content</TabContent>
+    <TabContent>Remediate content</TabContent>
+  </svelte:fragment>
+</Tabs>
+
+## Container type with icons and secondary label
+
+Container type tabs can use both `icon` and `secondaryLabel` for a primary label, icon, and optional secondary line (e.g. counts or status).
+
+<Tabs type="container">
+  <Tab label="Calendar" icon={Calendar} secondaryLabel="(12 events)" />
+  <Tab label="Information" icon={Information} secondaryLabel="(3 new)" />
+  <Tab label="Settings" icon={Settings} secondaryLabel="(2 pending)" disabled />
+  <svelte:fragment slot="content">
+    <TabContent>Calendar content</TabContent>
+    <TabContent>Information content</TabContent>
+    <TabContent>Settings content</TabContent>
   </svelte:fragment>
 </Tabs>
 

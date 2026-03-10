@@ -158,7 +158,15 @@
    */
   export let virtualize = undefined;
 
-  import { afterUpdate, createEventDispatcher, tick } from "svelte";
+  /**
+   * Set to `true` to render the dropdown menu in a portal,
+   * allowing it to escape containers with `overflow: hidden`.
+   * When inside a Modal, defaults to `true` unless explicitly set to `false`.
+   * @type {boolean | undefined}
+   */
+  export let portalMenu = undefined;
+
+  import { afterUpdate, createEventDispatcher, getContext, tick } from "svelte";
   import Checkmark from "../icons/Checkmark.svelte";
   import WarningAltFilled from "../icons/WarningAltFilled.svelte";
   import WarningFilled from "../icons/WarningFilled.svelte";
@@ -167,9 +175,14 @@
   import ListBoxMenuIcon from "../ListBox/ListBoxMenuIcon.svelte";
   import ListBoxMenuItem from "../ListBox/ListBoxMenuItem.svelte";
   import ListBoxSelection from "../ListBox/ListBoxSelection.svelte";
+  import { getMenuMaxHeight } from "../ListBox/list-box-utils.js";
   import { virtualize as virtualizeUtil } from "../utils/virtualize.js";
 
   const dispatch = createEventDispatcher();
+  const insideModal = getContext("carbon:Modal");
+
+  $: effectivePortalMenu =
+    portalMenu !== undefined ? portalMenu : !!insideModal;
 
   /** Default item height in pixels for virtualization */
   const DEFAULT_ITEM_HEIGHT = 40;
@@ -182,6 +195,9 @@
   let prevInputLength = 0;
   let listScrollTop = 0;
   let prevOpen = false;
+
+  /** @type {null | HTMLDivElement} */
+  let fieldRef = null;
 
   /**
    * @param {Item} item
@@ -418,7 +434,7 @@
     selectedItem = undefined;
   }
 
-  $: ariaLabel = $$props["aria-label"] ?? "Choose an item";
+  $: ariaLabel = $$props["aria-label"] ?? (labelText || "Choose an item");
   $: menuId = `menu-${id}`;
   $: comboId = `combo-${id}`;
   $: highlightedId = items[highlightedIndex] ? items[highlightedIndex].id : 0;
@@ -439,6 +455,8 @@
         ...(typeof virtualize === "object" ? virtualize : {}),
       }
     : null;
+
+  $: menuMaxHeight = getMenuMaxHeight(size);
 
   $: virtualData = virtualConfig
     ? virtualizeUtil({
@@ -474,6 +492,7 @@
 <svelte:window
   on:click={({ target }) => {
     if (open && ref && !ref.contains(target)) {
+      if (effectivePortalMenu && listRef && listRef.contains(target)) return;
       open = false;
     }
   }}
@@ -487,9 +506,7 @@
       class:bx--label--disabled={disabled}
       class:bx--visually-hidden={hideLabel}
     >
-      <slot name="labelChildren">
-        {labelText}
-      </slot>
+      <slot name="labelChildren"> {labelText} </slot>
     </label>
   {/if}
   <ListBox
@@ -508,7 +525,7 @@
     {warn}
     {warnText}
   >
-    <div class:bx--list-box__field={true}>
+    <div bind:this={fieldRef} class:bx--list-box__field={true}>
       <input
         bind:this={ref}
         bind:value
@@ -611,7 +628,7 @@
           }
         }}
         on:paste
-      />
+      >
       {#if invalid}
         <WarningFilled class="bx--list-box__invalid-icon" />
       {/if}
@@ -643,14 +660,22 @@
       <ListBoxMenu
         aria-label={ariaLabel}
         {id}
+        portal={effectivePortalMenu}
+        {open}
+        anchor={fieldRef}
+        {direction}
         on:scroll
         on:scroll={(e) => {
           listScrollTop = e.target.scrollTop;
         }}
         bind:ref={listRef}
-        style={virtualConfig
-          ? `max-height: ${virtualConfig.containerHeight}px; overflow-y: auto;`
-          : undefined}
+        style={effectivePortalMenu
+          ? `max-height: ${virtualConfig
+              ? `${virtualConfig.containerHeight}px; overflow-y: auto`
+              : menuMaxHeight};`
+          : virtualConfig
+            ? `max-height: ${virtualConfig.containerHeight}px; overflow-y: auto;`
+            : undefined}
       >
         {#if virtualData?.isVirtualized}
           <div style="height: {virtualData.totalHeight}px; position: relative;">
@@ -680,9 +705,7 @@
                     highlightedIndex = actualIndex;
                   }}
                 >
-                  <slot {item} index={actualIndex}>
-                    {itemToString(item)}
-                  </slot>
+                  <slot {item} index={actualIndex}> {itemToString(item)} </slot>
                   {#if selectedItem && selectedItem.id === item.id}
                     <Checkmark class="bx--list-box__menu-item__selected-icon" />
                   {/if}
@@ -715,9 +738,7 @@
                 highlightedIndex = i;
               }}
             >
-              <slot {item} index={i}>
-                {itemToString(item)}
-              </slot>
+              <slot {item} index={i}> {itemToString(item)} </slot>
               {#if selectedItem && selectedItem.id === item.id}
                 <Checkmark class="bx--list-box__menu-item__selected-icon" />
               {/if}

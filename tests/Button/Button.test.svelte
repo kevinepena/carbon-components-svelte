@@ -30,9 +30,7 @@
 
 <Button href="#">Link button</Button>
 
-<Button as let:props>
-  <p {...props}>Custom element</p>
-</Button>
+<Button as let:props> <p {...props}>Custom element</p> </Button>
 
 <Button disabled>Disabled button</Button>
 
@@ -50,3 +48,22 @@
 <Button skeleton />
 <Button skeleton size="field" />
 <Button skeleton size="small" />
+
+<Button
+  data-testid="btn-icon-a"
+  kind="ghost"
+  icon={Add}
+  iconDescription="Add"
+/>
+<Button
+  data-testid="btn-icon-b"
+  kind="ghost"
+  icon={Add}
+  iconDescription="Delete"
+/>
+<Button
+  data-testid="btn-icon-c"
+  kind="ghost"
+  icon={Add}
+  iconDescription="Save"
+/>

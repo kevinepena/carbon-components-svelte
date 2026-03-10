@@ -4,8 +4,10 @@ import type { DropdownItem } from "carbon-components-svelte/Dropdown/Dropdown.sv
 import type { ComponentEvents, ComponentProps } from "svelte";
 import { tick } from "svelte";
 import { isSvelte5, user } from "../setup-tests";
+import DropdownLabelChildren from "./Dropdown.slot.test.svelte";
 import Dropdown from "./Dropdown.test.svelte";
 import DropdownGenerics from "./DropdownGenerics.test.svelte";
+import DropdownInModal from "./DropdownInModal.test.svelte";
 import DropdownSlot from "./DropdownSlot.test.svelte";
 
 const items = [
@@ -284,6 +286,13 @@ describe("Dropdown", () => {
     expect(customItems[0]).toHaveTextContent("Item 1: Option 1");
     expect(customItems[1]).toHaveTextContent("Item 2: Option 2");
     expect(customItems[2]).toHaveTextContent("Item 3: Option 3");
+  });
+
+  it("supports custom label slot", () => {
+    render(DropdownLabelChildren);
+
+    const customLabel = screen.getByText("Custom label content");
+    expect(customLabel).toBeInTheDocument();
   });
 
   it("should close on outside click", async () => {
@@ -1392,6 +1401,92 @@ describe("Dropdown", () => {
       // Should have max-height style applied
       expect(menu.style.maxHeight).toBeTruthy();
       expect(menu.style.overflowY).toBe("auto");
+    });
+  });
+
+  describe("portalMenu", () => {
+    afterEach(() => {
+      const existingPortals = document.querySelectorAll(
+        "[data-floating-portal]",
+      );
+      for (const portal of existingPortals) {
+        portal.remove();
+      }
+    });
+
+    it("should render menu in FloatingPortal when portalMenu is true", () => {
+      render(Dropdown, {
+        props: {
+          items: [
+            { id: "0", text: "Slack" },
+            { id: "1", text: "Email" },
+          ],
+          portalMenu: true,
+          open: true,
+        },
+      });
+
+      const menu = screen.getByRole("listbox");
+      expect(menu).toBeInTheDocument();
+      const floatingPortal = menu.closest("[data-floating-portal]");
+      expect(floatingPortal).toBeInTheDocument();
+      expect(floatingPortal?.parentElement).toBe(document.body);
+    });
+
+    it("should render menu in FloatingPortal when inside Modal (portalMenu not passed)", () => {
+      render(DropdownInModal, {
+        props: { modalOpen: true, dropdownOpen: true },
+      });
+
+      const menu = screen.getByRole("listbox");
+      expect(menu).toBeInTheDocument();
+      const floatingPortal = menu.closest("[data-floating-portal]");
+      expect(floatingPortal).toBeInTheDocument();
+      expect(floatingPortal?.parentElement).toBe(document.body);
+    });
+
+    // Regression test for https://github.com/carbon-design-system/carbon-components-svelte/issues/2699
+    it("should close after item click selection with portalMenu", async () => {
+      const selectHandler = vi.fn();
+      render(Dropdown, {
+        props: {
+          items,
+          selectedId: "0",
+          portalMenu: true,
+          onselect: selectHandler,
+        },
+      });
+
+      const button = screen.getByRole("button");
+      await user.click(button);
+      expect(screen.getByRole("listbox")).toBeInTheDocument();
+
+      const menuItemText = screen.getByText("Email");
+      const menuItem = menuItemText.closest(".bx--list-box__menu-item");
+      assert(menuItem);
+      await user.click(menuItem);
+
+      expect(selectHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          detail: { selectedId: "1", selectedItem: items[1] },
+        }),
+      );
+      expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+    });
+
+    it("should not render menu in FloatingPortal when inside Modal with portalMenu=false", () => {
+      render(DropdownInModal, {
+        props: {
+          modalOpen: true,
+          dropdownOpen: true,
+          portalMenu: false,
+        },
+      });
+
+      const menu = screen.getByRole("listbox");
+      expect(menu).toBeInTheDocument();
+      const floatingPortal = menu.closest("[data-floating-portal]");
+      expect(floatingPortal).not.toBeInTheDocument();
     });
   });
 });

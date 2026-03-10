@@ -3,17 +3,13 @@ components: ["DatePicker", "DatePickerInput", "DatePickerSkeleton"]
 ---
 
 <script>
-  import { DatePicker, DatePickerSkeleton, DatePickerInput, InlineNotification } from "carbon-components-svelte";
-  import Preview from "../../components/Preview.svelte";
+  import { DatePicker, DatePickerSkeleton, DatePickerInput } from "carbon-components-svelte";
 </script>
 
-`DatePicker` lets users select a date or date range using a calendar interface. It uses the [flatpickr](https://github.com/flatpickr/flatpickr) library for its calendar implementation.
+Date pickers let users select a date or date range using a calendar interface. They use the [flatpickr](https://github.com/flatpickr/flatpickr) library for their calendar implementation.
 
-<InlineNotification svx-ignore lowContrast title="Note:" kind="info" hideCloseButton>
-  <div class="body-short-01">
-    If using Rollup, specify <strong>inlineDynamicImports: true</strong> in your <strong>rollup.config.js</strong>.
-  </div>
-</InlineNotification>
+> [!NOTE]
+> If using Rollup, specify **inlineDynamicImports: true** in your **rollup.config.js**.
 
 ## Single
 
@@ -27,11 +23,21 @@ Set `datePickerType` to `"range"` to enable date range selection.
 
 <FileSource src="/framed/DatePicker/DatePickerRange" />
 
-## DatePicker in a modal
+## Programmatic range update
 
-The calendar is positioned inside the wrapper by default (`flatpickrProps.static: true`). This ensures proper positioning within a [Modal](/components/Modal).
+Use `bind:valueFrom` and `bind:valueTo` to programmatically update the date range from outside the component.
 
-Set `flatpickrProps.static` to `false` to position the calendar outside the wrapper.
+<FileSource src="/framed/DatePicker/DatePickerProgrammatic" />
+
+## Custom date format
+
+Use the `dateFormat` prop to customize the date format (default: `"m/d/Y"`). The input `pattern` attribute is automatically derived to match, ensuring native form validation works correctly.
+
+<FileSource src="/framed/DatePicker/DatePickerCustomFormat" />
+
+## Portal menu
+
+Set `portalMenu` to `true` to render the calendar in a floating portal. This prevents the calendar from being clipped by parent containers with `overflow: hidden` or z-index stacking contexts. When inside a Modal, `portalMenu` defaults to `true` unless explicitly set to `false`.
 
 <FileSource src="/framed/DatePicker/DatePickerModal" />
 

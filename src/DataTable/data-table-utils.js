@@ -102,9 +102,9 @@ function deepEqual(a, b, stack = new WeakMap()) {
  * Lightweight deep equality check optimized for DataTable rows.
  * Compares arrays of row objects by first checking IDs (fast path),
  * then falling back to deep object comparison to handle nested structures.
- * @template {Record<string, any>} Row - Row type with at least an optional `id` property
- * @param {ReadonlyArray<Row> | null} a - First array of rows to compare
- * @param {ReadonlyArray<Row> | null} b - Second array of rows to compare
+ * @template T
+ * @param {ReadonlyArray<T> | null} a - First array of rows to compare
+ * @param {ReadonlyArray<T> | null} b - Second array of rows to compare
  * @returns {boolean} True if row arrays are deeply equal, false otherwise
  */
 export function rowsEqual(a, b) {
@@ -136,6 +136,20 @@ export function rowsEqual(a, b) {
   return true;
 }
 
+const RE_IGNORE_ROW_CLICK = /^bx--(overflow-menu|checkbox|radio-button)/;
+
+/**
+ * Returns true if the element's class list indicates the click target
+ * is an overflow menu, checkbox, or radio button (row click should be ignored).
+ * @param {EventTarget | null} target - The event target (e.g., from a click event)
+ * @returns {boolean}
+ */
+export function shouldIgnoreRowClick(target) {
+  if (!target || !("classList" in target)) return false;
+  const el = /** @type {HTMLElement} */ (target);
+  return [...el.classList].some((name) => RE_IGNORE_ROW_CLICK.test(name));
+}
+
 const PATH_SPLIT_REGEX = /[.[\]'"]/;
 const MAX_PATH_CACHE_SIZE = 1000;
 /** @type {Map<string, string[]>} */
@@ -158,16 +172,25 @@ export function resolvePath(object, path) {
     if (segments.length > 1) {
       if (pathCache.size >= MAX_PATH_CACHE_SIZE) {
         const firstKey = pathCache.keys().next().value;
-        pathCache.delete(firstKey);
+        if (firstKey !== undefined) {
+          pathCache.delete(firstKey);
+        }
       }
       pathCache.set(path, segments);
     }
   }
 
-  return segments.reduce(
-    /** @type {(acc: unknown, prop: string) => unknown} */
-    (o, p) => (o && typeof o === "object" ? o[p] : o),
-    /** @type {unknown} */ (object),
+  return (segments ?? []).reduce(
+    /**
+     * @param {unknown} acc
+     * @param {string} p
+     * @returns {unknown}
+     */
+    (acc, p) =>
+      acc && typeof acc === "object"
+        ? /** @type {Record<string, unknown>} */ (acc)[p]
+        : acc,
+    object,
   );
 }
 

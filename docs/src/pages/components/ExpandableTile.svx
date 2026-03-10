@@ -1,12 +1,11 @@
 <script>
-  import { ExpandableTile, Button } from "carbon-components-svelte";
-  import Preview from "../../components/Preview.svelte";
+  import { ExpandableTile, Button, Stack, OutboundLink } from "carbon-components-svelte";
 </script>
 
-The `ExpandableTile` component creates a collapsible content container that can
-show and hide content with a smooth animation. It's ideal for managing content
-overflow and progressive disclosure of information. The component automatically
-measures content height using a resize observer.
+Expandable tiles create a collapsible content container that can
+show and hide content with a smooth animation. They are ideal for managing content
+overflow and progressive disclosure of information. They automatically
+measure content height using a resize observer.
 
 ## Default
 
@@ -73,22 +72,20 @@ Customize the expand/collapse button labels using the `tileExpandedLabel` and
 
 ## With interactive content
 
-Handle interactive content within the tile by preventing event propagation. This
-ensures that clicks on interactive elements don't trigger the tile's expand/collapse
-behavior.
+By default, the tile uses a `<button>` element to toggle the expand/collapse state.
 
-<ExpandableTile tileExpandedLabel="View less" tileCollapsedLabel="View more">
-  <div slot="above">
-    <a href="/" on:click|preventDefault|stopPropagation={() => console.log("Hello world")}>
-      Native element
-    </a>
-    <br /><br />
-    <Button on:click={e => {
-      e.stopPropagation();
-      console.log("Hello world");
-    }}>
-      Svelte component
+If you need to use interactive content inside the tile, set the `hasInteractiveContent` prop to `true`. This will render the tile as a `<div>` element to avoid invalid HTML nesting. 
+
+Only the expand/collapse toggle with affect the tile's expand/collapse state.
+
+<ExpandableTile hasInteractiveContent tileExpandedLabel="View less" tileCollapsedLabel="View more">
+  <Stack slot="above" gap={4} inline>
+    <OutboundLink href="https://svelte.carbondesignsystem.com/">
+      Native link
+    </OutboundLink>
+    <Button on:click={() => console.log("Hello world")}>
+      Button
     </Button>
-  </div>
+  </Stack>
   <div slot="below">Below the fold content here</div>
 </ExpandableTile>

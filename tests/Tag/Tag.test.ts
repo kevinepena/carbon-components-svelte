@@ -1,4 +1,6 @@
 import { render, screen } from "@testing-library/svelte";
+import type TagComponent from "carbon-components-svelte/Tag/Tag.svelte";
+import type { ComponentProps } from "svelte";
 import { user } from "../setup-tests";
 import Tag from "./Tag.test.svelte";
 
@@ -42,13 +44,40 @@ describe("Tag", () => {
     const filterableTag = screen.getByText("Filterable");
     expect(filterableTag).toHaveClass("bx--tag--filter");
 
-    const closeButton = screen.getByRole("button", { name: /clear filter/i });
-    expect(closeButton).toHaveClass("bx--tag__close-icon");
+    const tagElement = filterableTag.closest(".bx--tag--filter");
+    assert(tagElement);
+    const closeButton = tagElement.querySelector(".bx--tag__close-icon");
+    assert(closeButton instanceof HTMLElement);
     expect(closeButton).toHaveAttribute("title", "Clear filter");
 
     await user.click(closeButton);
     expect(consoleLog).toHaveBeenCalledWith("close");
-    expect(consoleLog).toHaveBeenCalledWith("click");
+  });
+
+  it("fires click event when clicking filterable tag body", async () => {
+    const consoleLog = vi.spyOn(console, "log");
+    render(Tag);
+
+    const tagBody = screen.getByText("Filter click and close");
+    await user.click(tagBody);
+    expect(consoleLog).toHaveBeenCalledWith("filter-body-click");
+    expect(consoleLog).not.toHaveBeenCalledWith("filter-close");
+  });
+
+  it("fires only close event when clicking filterable tag close button", async () => {
+    const consoleLog = vi.spyOn(console, "log");
+    render(Tag);
+
+    const tagElement = screen
+      .getByText("Filter click and close")
+      .closest(".bx--tag--filter");
+    assert(tagElement);
+    const closeButton = tagElement.querySelector(".bx--tag__close-icon");
+    assert(closeButton instanceof HTMLElement);
+
+    await user.click(closeButton);
+    expect(consoleLog).toHaveBeenCalledWith("filter-close");
+    expect(consoleLog).not.toHaveBeenCalledWith("filter-body-click");
   });
 
   it("renders custom icon tag correctly", () => {
@@ -144,5 +173,24 @@ describe("Tag", () => {
     assert(tagElement);
     const iconContainer = tagElement.querySelector(".bx--tag__custom-icon");
     expect(iconContainer).toBeInTheDocument();
+  });
+
+  describe("Generics", () => {
+    it("should support custom Icon types with generics", () => {
+      type CustomIcon = new (...args: unknown[]) => unknown;
+
+      type ComponentType = TagComponent<CustomIcon>;
+      type Props = ComponentProps<ComponentType>;
+
+      expectTypeOf<Props["icon"]>().toEqualTypeOf<CustomIcon | undefined>();
+    });
+
+    it("should default to any type when generic is not specified", () => {
+      type ComponentType = TagComponent;
+      type Props = ComponentProps<ComponentType>;
+
+      // biome-ignore lint/suspicious/noExplicitAny: Testing default any type
+      expectTypeOf<Props["icon"]>().toEqualTypeOf<any>();
+    });
   });
 });

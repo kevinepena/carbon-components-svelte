@@ -50,6 +50,7 @@
   let innerModal = null;
   let didClickInnerModal = false;
   let closeDispatched = false;
+  let previouslyFocusedElement = null;
 
   function close(trigger) {
     closeDispatched = true;
@@ -90,7 +91,8 @@
     label.set(value);
   };
 
-  setContext("ComposedModal", {
+  setContext("carbon:Modal", {});
+  setContext("carbon:ComposedModal", {
     closeModal,
     submit,
     declareRef,
@@ -98,9 +100,23 @@
   });
 
   function focus(element) {
+    // If selectorPrimaryFocus is purposefully falsy, don't focus anything.
     if (selectorPrimaryFocus == null) return;
+    const container = element || innerModal;
+    /**
+     * First, use the selectorPrimaryFocus to find the element.
+     * Otherwise, try the first input for transactional dialogs.
+     * Fall back to the primary button, then the close button.
+     */
+    const selectorFirstInput =
+      'input:not([type="hidden"]):not([disabled]):not([tabindex="-1"]), textarea:not([disabled]):not([tabindex="-1"]), select:not([disabled]):not([tabindex="-1"])';
     const node =
-      (element || innerModal)?.querySelector(selectorPrimaryFocus) || buttonRef;
+      container?.querySelector(selectorPrimaryFocus) ||
+      container?.querySelector(selectorFirstInput) ||
+      (danger
+        ? container?.querySelector(".bx--btn--secondary")
+        : container?.querySelector(".bx--btn--primary")) ||
+      container?.querySelector(".bx--modal-close");
     if (node != null) node.focus();
   }
 
@@ -212,9 +228,17 @@
   on:transitionend={({ propertyName, currentTarget }) => {
     if (propertyName === "transform") {
       dispatch("transitionend", { open });
+      if (!open && previouslyFocusedElement?.isConnected) {
+        previouslyFocusedElement.focus();
+        previouslyFocusedElement = null;
+      }
     }
 
     if (didOpen) {
+      previouslyFocusedElement =
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
       focus(currentTarget);
       didOpen = false;
     }

@@ -5,20 +5,27 @@ components: ["OverflowMenu", "OverflowMenuItem"]
 <script>
   import { OverflowMenu, OverflowMenuItem } from "carbon-components-svelte";
   import Add from "carbon-icons-svelte/lib/Add.svelte";
-  import Preview from "../../components/Preview.svelte";
 </script>
 
-`OverflowMenu` provides a compact way to display a list of actions or options. It renders as a button that opens a dropdown menu when clicked, making it ideal for secondary actions or overflow content.
+Overflow menus provide a compact way to display a list of actions or options. They render as a button that opens a dropdown menu when clicked, making them ideal for secondary actions or overflow content.
 
 ## Default
 
-Create a basic overflow menu by wrapping `OverflowMenuItem` components within `OverflowMenu`.
+Create a basic overflow menu by wrapping overflow menu item components within the overflow menu.
 
 <OverflowMenu>
   <OverflowMenuItem text="Manage credentials" />
   <OverflowMenuItem href="https://cloud.ibm.com/docs/api-gateway/" target="_blank" text="API documentation" />
   <OverflowMenuItem danger text="Delete service" />
 </OverflowMenu>
+
+## Portal menu
+
+Set `portalMenu` to `true` to render the menu in a floating portal. This prevents the menu from being clipped by parent containers with `overflow: hidden` or z-index stacking contexts. The example below shows a container with hidden overflow. Without `portalMenu`, the menu would be clipped.
+
+ When inside a [Modal](/components/Modal), `portalMenu` defaults to `true` unless explicitly set to `false`. 
+
+<FileSource src="/framed/OverflowMenu/OverflowMenuPortalMenu" />
 
 ## Flipped
 
@@ -121,6 +128,6 @@ Set `disabled` to `true` to disable menu items. Use `hasDivider` to add visual s
 
 ## Prevent menu from closing
 
-Use `preventDefault()` on individual `OverflowMenuItem` click events to prevent the menu from closing when that item is clicked. This is useful for scenarios where you want to keep the menu open after performing an action.
+Use `preventDefault()` on individual overflow menu item click events to prevent the menu from closing when that item is clicked. This is useful for scenarios where you want to keep the menu open after performing an action.
 
 <FileSource src="/framed/OverflowMenu/OverflowMenuPreventDefault" />

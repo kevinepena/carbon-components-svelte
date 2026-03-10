@@ -43,7 +43,7 @@
 
   const dispatch = createEventDispatcher();
 
-  const ctx = getContext("SelectableTileGroup");
+  const ctx = getContext("carbon:SelectableTileGroup");
   const hasGroup = ctx !== undefined;
   const {
     add = () => {},
@@ -85,7 +85,7 @@
       }
     }
   }}
-/>
+>
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
 <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
@@ -135,7 +135,5 @@
   <span class:bx--tile__checkmark={true}>
     <CheckmarkFilled aria-label={iconDescription} title={iconDescription} />
   </span>
-  <span class:bx--tile-content={true}>
-    <slot />
-  </span>
+  <span class:bx--tile-content={true}> <slot /> </span>
 </label>

@@ -1,7 +1,10 @@
 import { render, screen } from "@testing-library/svelte";
+import type ModalComponent from "carbon-components-svelte/Modal/Modal.svelte";
+import type { ComponentProps } from "svelte";
 import { tick } from "svelte";
 import { user } from "../setup-tests";
 import ModalTest from "./Modal.test.svelte";
+import ModalFocusReturnTest from "./ModalFocusReturn.test.svelte";
 import ModalFocusTrapTest from "./ModalFocusTrap.test.svelte";
 import ModalFormIdTest from "./ModalFormId.test.svelte";
 import ModalNullishAriaLabel from "./ModalNullishAriaLabel.test.svelte";
@@ -204,15 +207,107 @@ describe("Modal", () => {
     expect(modalBody).toHaveClass("bx--modal-scroll-content");
   });
 
-  it("should focus close button when open", () => {
+  // Regression test for https://github.com/carbon-design-system/carbon-components-svelte/issues/2671
+  it("should focus primary button when open (not close button)", () => {
     render(ModalTest, {
       props: {
         open: true,
+        modalHeading: "Focus Test",
+        primaryButtonText: "Save",
+        secondaryButtonText: "Cancel",
+        includeInput: false,
+      },
+    });
+
+    const primaryButton = screen.getByRole("button", { name: "Save" });
+    expect(primaryButton).toHaveFocus();
+  });
+
+  it("should focus close button when open and passive", () => {
+    render(ModalTest, {
+      props: {
+        open: true,
+        passiveModal: true,
+        modalHeading: "Passive Focus Test",
+        includeInput: false,
       },
     });
 
     const closeButton = screen.getByLabelText("Close the modal");
     expect(closeButton).toHaveFocus();
+  });
+
+  it("returns focus to trigger when closed via close button", async () => {
+    const { container } = render(ModalFocusReturnTest, {
+      props: {},
+    });
+
+    const trigger = screen.getByRole("button", { name: "Open Modal" });
+    await user.click(trigger);
+    await tick();
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    const closeButton = screen.getByLabelText("Close the modal");
+    await user.click(closeButton);
+    await tick();
+
+    const modalWrapper = container.querySelector(".bx--modal");
+    assert(modalWrapper);
+    modalWrapper.dispatchEvent(
+      new TransitionEvent("transitionend", { propertyName: "transform" }),
+    );
+    await tick();
+
+    expect(trigger).toHaveFocus();
+  });
+
+  it("returns focus to trigger when closed via Escape key", async () => {
+    const { container } = render(ModalFocusReturnTest, {
+      props: {},
+    });
+
+    const trigger = screen.getByRole("button", { name: "Open Modal" });
+    await user.click(trigger);
+    await tick();
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    await user.keyboard("{Escape}");
+    await tick();
+
+    const modalWrapper = container.querySelector(".bx--modal");
+    assert(modalWrapper);
+    modalWrapper.dispatchEvent(
+      new TransitionEvent("transitionend", { propertyName: "transform" }),
+    );
+    await tick();
+
+    expect(trigger).toHaveFocus();
+  });
+
+  it("returns focus to trigger when closed via outside click", async () => {
+    const { container } = render(ModalFocusReturnTest, {
+      props: {},
+    });
+
+    const trigger = screen.getByRole("button", { name: "Open Modal" });
+    await user.click(trigger);
+    await tick();
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    const modalWrapper = container.querySelector(".bx--modal");
+    assert(modalWrapper);
+    await user.click(modalWrapper);
+    await tick();
+
+    modalWrapper.dispatchEvent(
+      new TransitionEvent("transitionend", { propertyName: "transform" }),
+    );
+    await tick();
+
+    expect(trigger).toHaveFocus();
   });
 
   it("respects the selectorPrimaryFocus prop", () => {
@@ -225,6 +320,64 @@ describe("Modal", () => {
     });
 
     expect(screen.getByTestId("test-focus")).toHaveFocus();
+  });
+
+  it("focuses the first input when selectorPrimaryFocus is default and modal has form fields", () => {
+    render(ModalTest, {
+      props: {
+        open: true,
+        modalHeading: "Form Modal",
+        primaryButtonText: "Save",
+        secondaryButtonText: "Cancel",
+      },
+    });
+
+    expect(screen.getByTestId("test-focus")).toHaveFocus();
+  });
+
+  it("selectorPrimaryFocus overrides first-input focus", () => {
+    render(ModalTest, {
+      props: {
+        open: true,
+        modalHeading: "Override Test",
+        primaryButtonText: "Save",
+        secondaryButtonText: "Cancel",
+        selectorPrimaryFocus: "button.bx--btn--primary",
+      },
+    });
+
+    expect(screen.getByRole("button", { name: "Save" })).toHaveFocus();
+  });
+
+  it("focuses the cancel button when danger and modal has secondary button", () => {
+    render(ModalTest, {
+      props: {
+        open: true,
+        danger: true,
+        modalHeading: "Delete Modal",
+        primaryButtonText: "Delete",
+        secondaryButtonText: "Cancel",
+        includeInput: false,
+      },
+    });
+
+    expect(screen.getByRole("button", { name: "Cancel" })).toHaveFocus();
+  });
+
+  it("selectorPrimaryFocus overrides danger focus", () => {
+    render(ModalTest, {
+      props: {
+        open: true,
+        danger: true,
+        modalHeading: "Delete Modal",
+        primaryButtonText: "Delete",
+        secondaryButtonText: "Cancel",
+        selectorPrimaryFocus: "button.bx--btn--danger",
+        includeInput: false,
+      },
+    });
+
+    expect(screen.getByRole("button", { name: "Delete" })).toHaveFocus();
   });
 
   it("prevents closing when clicking outside if configured", async () => {
@@ -591,6 +744,27 @@ describe("Modal", () => {
       // Both Modal events should occur
       expect(submitHandler).toHaveBeenCalledTimes(1);
       expect(clickPrimaryHandler).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("Generics", () => {
+    it("should support custom Icon types with generics", () => {
+      type CustomIcon = new (...args: unknown[]) => unknown;
+
+      type ComponentType = ModalComponent<CustomIcon>;
+      type Props = ComponentProps<ComponentType>;
+
+      expectTypeOf<Props["primaryButtonIcon"]>().toEqualTypeOf<
+        CustomIcon | undefined
+      >();
+    });
+
+    it("should default to any type when generic is not specified", () => {
+      type ComponentType = ModalComponent;
+      type Props = ComponentProps<ComponentType>;
+
+      // biome-ignore lint/suspicious/noExplicitAny: Testing default any type
+      expectTypeOf<Props["primaryButtonIcon"]>().toEqualTypeOf<any>();
     });
   });
 });

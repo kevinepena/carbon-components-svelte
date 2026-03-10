@@ -1,5 +1,9 @@
 <script>
   /**
+   * @generics {Icon = any} Icon
+   */
+
+  /**
    * Specify the tooltip text.
    * Alternatively, use the "tooltipText" slot.
    */
@@ -7,9 +11,16 @@
 
   /**
    * Specify the icon to render.
-   * @type {any}
+   * @type {Icon}
    */
-  export let icon = undefined;
+  export let icon = /** @type {Icon} */ (undefined);
+
+  /**
+   * Specify the icon size.
+   * Carbon icons use a 16/20/24/32 scale, but any number (pixels) can be used.
+   * @type {(16 | 20 | 24 | 32 | (number & {}))}
+   */
+  export let size = 16;
 
   /** Set to `true` to disable the tooltip icon */
   export let disabled = false;
@@ -77,7 +88,5 @@
   <span {id} class:bx--assistive-text={true}>
     <slot name="tooltipText">{tooltipText}</slot>
   </span>
-  <slot>
-    <svelte:component this={icon} />
-  </slot>
+  <slot> <svelte:component this={icon} {size} /> </slot>
 </button>

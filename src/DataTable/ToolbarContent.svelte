@@ -1,7 +1,7 @@
 <script>
   import { getContext } from "svelte";
 
-  const ctx = getContext("Toolbar") ?? {};
+  const ctx = getContext("carbon:Toolbar") ?? {};
 
   let batchActionsActive = false;
 
@@ -14,6 +14,4 @@
   $: inertProps = batchActionsActive ? { inert: true } : {};
 </script>
 
-<div class:bx--toolbar-content={true} {...inertProps}>
-  <slot />
-</div>
+<div class:bx--toolbar-content={true} {...inertProps}><slot /></div>

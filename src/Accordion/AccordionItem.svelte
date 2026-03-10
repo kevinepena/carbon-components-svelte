@@ -25,7 +25,7 @@
 
   let initialDisabled = disabled;
 
-  const ctx = getContext("Accordion");
+  const ctx = getContext("carbon:Accordion");
   const unsubscribe = ctx.disableItems.subscribe((value) => {
     if (!value && initialDisabled) return;
     disabled = value;
@@ -79,7 +79,5 @@
       <slot name="title">{title}</slot>
     </div>
   </button>
-  <div class:bx--accordion__content={true}>
-    <slot />
-  </div>
+  <div class:bx--accordion__content={true}><slot /></div>
 </li>

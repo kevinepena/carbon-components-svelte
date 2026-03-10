@@ -28,7 +28,7 @@
         kind="ghost"
         target="_blank"
         size="field"
-        href={themedSrcUrl}
+        href={$url(src)}
         icon={Launch}
       >
         Open in new tab
@@ -37,7 +37,10 @@
   {/if}
   <div class="preview-viewer" class:framed>
     {#if framed}
-      <iframe loading="lazy" title={src.split("/").pop()} src={themedSrcUrl}
+      <iframe
+        loading="lazy"
+        title={src.split("/").pop()}
+        src={themedSrcUrl}
       ></iframe>
     {:else}
       <slot />

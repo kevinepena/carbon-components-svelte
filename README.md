@@ -1,7 +1,6 @@
 # carbon-components-svelte
 
 [![NPM][npm]][npm-url]
-![GitHub](https://img.shields.io/github/license/carbon-design-system/carbon-components-svelte?color=262626&style=for-the-badge)
 ![npm downloads to date](https://img.shields.io/npm/dt/carbon-components-svelte?color=262626&style=for-the-badge)
 <a href="https://discord.gg/J7JEUEkTRX">
 <img src="https://img.shields.io/discord/689212587170201628?color=5865F2&style=for-the-badge" alt="Chat with us on Discord">
@@ -13,7 +12,7 @@ Design systems facilitate design and development through reuse, consistency, and
 
 The Carbon Svelte portfolio also includes:
 
-- **[Carbon Icons Svelte](https://github.com/carbon-design-system/carbon-icons-svelte)**: 2,500+ Carbon icons as Svelte components
+- **[Carbon Icons Svelte](https://github.com/carbon-design-system/carbon-icons-svelte)**: 2,600+ Carbon icons as Svelte components
 - **[Carbon Pictograms Svelte](https://github.com/carbon-design-system/carbon-pictograms-svelte)**: 1,500+ Carbon pictograms as Svelte components
 - **[Carbon Charts Svelte](https://github.com/carbon-design-system/carbon-charts/tree/master/packages/svelte)**: 25+ charts, powered by d3
 - **[Carbon Preprocess Svelte](https://github.com/carbon-design-system/carbon-preprocess-svelte)**: Collection of Svelte preprocessors for Carbon

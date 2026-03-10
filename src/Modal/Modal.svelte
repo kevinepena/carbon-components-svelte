@@ -1,5 +1,6 @@
 <script>
   /**
+   * @generics {Icon = any} Icon
    * @event close
    * @type {object}
    * @property {"escape-key" | "outside-click" | "close-button"} trigger
@@ -71,9 +72,9 @@
 
   /**
    * Specify the primary button icon.
-   * @type {any}
+   * @type {Icon}
    */
-  export let primaryButtonIcon = undefined;
+  export let primaryButtonIcon = /** @type {Icon} */ (undefined);
 
   /**
    * Set to `true` for the "submit" and "click:button--primary" events
@@ -103,7 +104,7 @@
   /** Obtain a reference to the top-level HTML element */
   export let ref = null;
 
-  import { afterUpdate, createEventDispatcher } from "svelte";
+  import { afterUpdate, createEventDispatcher, setContext } from "svelte";
   import { writable } from "svelte/store";
   import Button from "../Button/Button.svelte";
   import Close from "../icons/Close.svelte";
@@ -117,10 +118,23 @@
   let opened = false;
   let didClickInnerModal = false;
   let closeDispatched = false;
+  let previouslyFocusedElement = null;
 
   function focus(element) {
+    const container = element || innerModal;
+    /**
+     * First, use the selectorPrimaryFocus to find the element.
+     * Otherwise, try the first input for transactional dialogs.
+     * Fall back to the primary button, then the close button.
+     */
+    const selectorFirstInput =
+      'input:not([type="hidden"]):not([disabled]):not([tabindex="-1"]), textarea:not([disabled]):not([tabindex="-1"]), select:not([disabled]):not([tabindex="-1"])';
     const node =
-      (element || innerModal).querySelector(selectorPrimaryFocus) || buttonRef;
+      container.querySelector(selectorPrimaryFocus) ||
+      container.querySelector(selectorFirstInput) ||
+      (danger ? container.querySelector(".bx--btn--secondary") : null) ||
+      primaryButtonRef ||
+      buttonRef;
     node.focus();
   }
 
@@ -138,6 +152,8 @@
   $: $openStore = open;
   trackModal(openStore);
 
+  setContext("carbon:Modal", {});
+
   afterUpdate(() => {
     if (opened) {
       if (!open) {
@@ -149,6 +165,10 @@
       }
     } else if (open) {
       opened = true;
+      previouslyFocusedElement =
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
       focus();
       dispatch("open");
     }
@@ -255,6 +275,10 @@
   on:transitionend={(e) => {
     if (e.propertyName === "transform") {
       dispatch("transitionend", { open });
+      if (!open && previouslyFocusedElement?.isConnected) {
+        previouslyFocusedElement.focus();
+        previouslyFocusedElement = null;
+      }
     }
   }}
 >

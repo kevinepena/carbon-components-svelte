@@ -1,11 +1,19 @@
 <script>
+  /**
+   * @generics {Value extends string = string} Value
+   * @template {string} Value
+   */
+
   /** Set to `true` to check the input */
   export let checked = false;
 
   /** Specify the title of the input */
   export let title = "title";
 
-  /** Specify the value of the input */
+  /**
+   * Specify the value of the input.
+   * @type {Value}
+   */
   export let value = "value";
 
   /** Set an id for the input element */
@@ -19,7 +27,7 @@
 
   import { getContext } from "svelte";
 
-  const { selectedValue, update } = getContext("StructuredListWrapper");
+  const { selectedValue, update } = getContext("carbon:StructuredListWrapper");
 
   if (checked) {
     update(value);
@@ -42,4 +50,4 @@
   on:change={() => {
     update(value);
   }}
-/>
+>

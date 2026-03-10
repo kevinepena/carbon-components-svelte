@@ -1,5 +1,6 @@
 <script>
   /**
+   * @generics {Icon = any} Icon
    * @event {ReadonlyArray<File>} change
    */
 
@@ -50,9 +51,9 @@
 
   /**
    * Specify the icon to render.
-   * @type {any}
+   * @type {Icon}
    */
-  export let icon = undefined;
+  export let icon = /** @type {Icon} */ (undefined);
 
   /**
    * Specify the ARIA label for the button icon.
@@ -161,9 +162,7 @@
   {#if hasIconOnly}
     <span class:bx--assistive-text={true}>{iconDescription}</span>
   {:else}
-    <slot name="labelChildren">
-      {labelText}
-    </slot>
+    <slot name="labelChildren"> {labelText} </slot>
   {/if}
   {#if icon}
     <svelte:component
@@ -198,4 +197,4 @@
   on:click={({ target }) => {
     target.value = "";
   }}
-/>
+>

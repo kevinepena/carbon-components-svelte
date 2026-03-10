@@ -11,8 +11,15 @@
   export let readonly = false;
   export let allowEmpty = false;
   export let allowDecimal = false;
+  export let locale: ComponentProps<NumberInput>["locale"] = undefined;
+  export let formatOptions: ComponentProps<NumberInput>["formatOptions"] =
+    undefined;
   export let disabled = false;
   export let hideSteppers = false;
+  export let disableWheel = false;
+  export let stepStartValue: ComponentProps<NumberInput>["stepStartValue"] =
+    undefined;
+  export let validate: ComponentProps<NumberInput>["validate"] = undefined;
   export let invalid = false;
   export let invalidText = "";
   export let warn = false;
@@ -32,8 +39,12 @@
     undefined;
   export let onkeyup: ((event: KeyboardEvent) => void) | undefined = undefined;
   export let onfocus: ((event: FocusEvent) => void) | undefined = undefined;
-  export let onblur: ((event: FocusEvent) => void) | undefined = undefined;
+  export let onblur: ((event: CustomEvent) => void) | undefined = undefined;
   export let onpaste: ((event: ClipboardEvent) => void) | undefined = undefined;
+  export let onclickstepper: ((event: CustomEvent) => void) | undefined =
+    undefined;
+  export let onblurstepper: ((event: CustomEvent) => void) | undefined =
+    undefined;
 </script>
 
 <NumberInput
@@ -46,8 +57,13 @@
   {readonly}
   {allowEmpty}
   {allowDecimal}
+  {locale}
+  {formatOptions}
   {disabled}
   {hideSteppers}
+  {disableWheel}
+  {stepStartValue}
+  {validate}
   {invalid}
   {invalidText}
   {warn}
@@ -67,6 +83,8 @@
   on:focus={onfocus}
   on:blur={onblur}
   on:paste={onpaste}
+  on:click:stepper={onclickstepper}
+  on:blur:stepper={onblurstepper}
 />
 
 <div data-testid="value">{value}</div>

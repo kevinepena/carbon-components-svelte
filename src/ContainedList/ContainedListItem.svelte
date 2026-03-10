@@ -1,4 +1,8 @@
 <script>
+  /**
+   * @generics {Icon = any} Icon
+   */
+
   /** Set to `true` to render a `button` element instead of a `div` */
   export let interactive = false;
 
@@ -8,9 +12,9 @@
   /**
    * Specify the icon to render.
    * Icon is rendered to the left of the item content.
-   * @type {any}
+   * @type {Icon}
    */
-  export let icon = undefined;
+  export let icon = /** @type {Icon} */ (undefined);
 
   $: tag = interactive ? "button" : "div";
   $: props = {
@@ -37,9 +41,7 @@
         <svelte:component this="{icon}" />
       </div>
     {/if}
-    <div>
-      <slot />
-    </div>
+    <div><slot /></div>
   </svelte:element>
   {#if $$slots.action}
     <div class:bx--contained-list-item__action="{true}">
@@ -47,4 +49,3 @@
     </div>
   {/if}
 </li>
-

@@ -15,6 +15,9 @@
   /** Set to `true` for tabs to have an auto-width */
   export let autoWidth = false;
 
+  /** Set to `true` for tabs to span the full width of the container */
+  export let fullWidth = false;
+
   /**
    * Specify the ARIA label for the chevron icon.
    * @type {string}
@@ -31,7 +34,7 @@
   const dispatch = createEventDispatcher();
 
   /**
-   * @type {import("svelte/store").Writable<ReadonlyArray<{ id: string; label: string; disabled: boolean; index: number }>>}
+   * @type {import("svelte/store").Writable<ReadonlyArray<{ id: string; label: string; disabled: boolean; hasSecondaryLabel: boolean; index: number }>>}
    */
   const tabs = writable([]);
   const tabsById = derived(tabs, (_) =>
@@ -44,6 +47,10 @@
    * @type {import("svelte/store").Writable<boolean>}
    */
   const useAutoWidth = writable(autoWidth);
+  /**
+   * @type {import("svelte/store").Writable<boolean>}
+   */
+  const useFullWidth = writable(fullWidth);
   /**
    * @type {import("svelte/store").Writable<string | undefined>}
    */
@@ -73,8 +80,13 @@
   // This is necessary to avoid infinite loops in Svelte 5.
   let needsDomSync = false;
 
+  const hasSecondaryLabel = derived(
+    tabs,
+    (_) => type === "container" && _.some((tab) => tab.hasSecondaryLabel),
+  );
+
   /**
-   * @type {(data: { id: string; label: string; disabled: boolean }) => void}
+   * @type {(data: { id: string; label: string; disabled: boolean; hasSecondaryLabel: boolean }) => void}
    */
   const add = (data) => {
     needsDomSync = true;
@@ -146,12 +158,14 @@
     activeTab?.focus();
   };
 
-  setContext("Tabs", {
+  setContext("carbon:Tabs", {
     tabs,
     contentById,
     selectedTab,
     selectedContent,
     useAutoWidth,
+    useFullWidth,
+    hasSecondaryLabel,
     add,
     remove,
     addContent,
@@ -228,6 +242,7 @@
     dropdownHidden = true;
   }
   $: useAutoWidth.set(autoWidth);
+  $: useFullWidth.set(fullWidth);
 </script>
 
 <div
@@ -235,6 +250,8 @@
   role="navigation"
   class:bx--tabs={true}
   class:bx--tabs--container={type === "container"}
+  class:bx--tabs--tall={$hasSecondaryLabel}
+  class:bx--tabs--full-width={fullWidth}
   {...$$restProps}
 >
   <div
@@ -259,7 +276,9 @@
         dropdownHidden = !dropdownHidden;
       }}
     >
-      {#if currentTab}{currentTab.label}{/if}
+      {#if currentTab}
+        {currentTab.label}
+      {/if}
     </a>
     <ChevronDown aria-hidden="true" title={iconDescription} />
   </div>

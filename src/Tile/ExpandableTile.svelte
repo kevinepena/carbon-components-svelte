@@ -29,6 +29,14 @@
   /** Set an id for the top-level div element */
   export let id = `ccs-${Math.random().toString(36)}`;
 
+  /**
+   * Set to `true` if the tile contains interactive content
+   * (e.g., links, buttons, inputs). The tile will render as
+   * a `div` instead of a `button` to avoid invalid HTML nesting,
+   * and the expand/collapse toggle moves to the chevron button.
+   */
+  export let hasInteractiveContent = false;
+
   /** Obtain a reference to the top-level element */
   export let ref = null;
 
@@ -42,7 +50,9 @@
       tileMaxHeight = elem.contentRect.height;
     });
 
-    resizeObserver.observe(refAbove);
+    if (refAbove) {
+      resizeObserver.observe(refAbove);
+    }
 
     return () => {
       resizeObserver.disconnect();
@@ -50,7 +60,9 @@
   });
 
   afterUpdate(() => {
-    if (tileMaxHeight === 0) {
+    if (!ref) return;
+
+    if (tileMaxHeight === 0 && refAbove) {
       tileMaxHeight = refAbove.getBoundingClientRect().height;
     }
 
@@ -63,22 +75,24 @@
 </script>
 
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
-<button
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<svelte:element
+  this={hasInteractiveContent ? "div" : "button"}
   bind:this={ref}
-  type="button"
+  type={hasInteractiveContent ? undefined : "button"}
   {id}
-  aria-expanded={expanded}
-  {tabindex}
-  title={expanded ? tileExpandedIconText : tileCollapsedIconText}
+  aria-expanded={hasInteractiveContent ? undefined : expanded}
+  tabindex={hasInteractiveContent ? undefined : tabindex}
+  title={hasInteractiveContent ? undefined : (expanded ? tileExpandedIconText : tileCollapsedIconText)}
   class:bx--tile={true}
   class:bx--tile--expandable={true}
   class:bx--tile--is-expanded={expanded}
   class:bx--tile--light={light}
-  style:max-height={expanded ? "none" : `${tileMaxHeight + tilePadding}px`}
+  style:max-height={expanded || tileMaxHeight <= 0 ? "none" : `${tileMaxHeight + tilePadding}px`}
   {...$$restProps}
   on:click
   on:click={() => {
-    expanded = !expanded;
+    if (!hasInteractiveContent) expanded = !expanded;
   }}
   on:keypress
   on:mouseover
@@ -91,14 +105,23 @@
         <slot name="above" />
       </span>
     </div>
-    <div class:bx--tile__chevron={true}>
+    <svelte:element
+      this={hasInteractiveContent ? "button" : "div"}
+      type={hasInteractiveContent ? "button" : undefined}
+      class:bx--tile__chevron={true}
+      aria-expanded={hasInteractiveContent ? expanded : undefined}
+      title={hasInteractiveContent ? (expanded ? tileExpandedIconText : tileCollapsedIconText) : undefined}
+      on:click={() => {
+        if (hasInteractiveContent) expanded = !expanded;
+      }}
+    >
       <span>{expanded ? tileExpandedLabel : tileCollapsedLabel}</span>
       <ChevronDown />
-    </div>
+    </svelte:element>
     <div class:bx--tile-content={true}>
       <span class:bx--tile-content__below-the-fold={true}>
         <slot name="below" />
       </span>
     </div>
   </div>
-</button>
+</svelte:element>

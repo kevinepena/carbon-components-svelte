@@ -1,4 +1,11 @@
 import { render, screen } from "@testing-library/svelte";
+import type HamburgerMenuComponent from "carbon-components-svelte/UIShell/HamburgerMenu.svelte";
+import type HeaderComponent from "carbon-components-svelte/UIShell/Header.svelte";
+import type HeaderActionLinkComponent from "carbon-components-svelte/UIShell/HeaderActionLink.svelte";
+import type HeaderGlobalActionComponent from "carbon-components-svelte/UIShell/HeaderGlobalAction.svelte";
+import type SideNavLinkComponent from "carbon-components-svelte/UIShell/SideNavLink.svelte";
+import type SideNavMenuComponent from "carbon-components-svelte/UIShell/SideNavMenu.svelte";
+import type { ComponentProps } from "svelte";
 import { user } from "../setup-tests";
 import HeaderSlot from "./Header.slot.test.svelte";
 import UiShell from "./UIShell.test.svelte";
@@ -356,6 +363,18 @@ describe("UIShell", () => {
       });
     });
 
+    // Regression test for https://github.com/carbon-design-system/carbon-components-svelte/issues/2701
+    it("should not render hamburger menu when SideNav is fixed", () => {
+      const { container } = render(UiShell, {
+        props: { sideNavFixed: true },
+      });
+
+      const hamburgerButton = container.querySelector(
+        ".bx--header__menu-trigger",
+      );
+      expect(hamburgerButton).not.toBeInTheDocument();
+    });
+
     it("should render fixed variant", () => {
       const { container } = render(UiShell, {
         props: { sideNavFixed: true },
@@ -439,6 +458,63 @@ describe("UIShell", () => {
       expect(consoleLog).toHaveBeenCalledWith("sidenav-overlay-click");
     });
 
+    describe("custom expansion breakpoint (HeaderNavCustomBreakpoint-style)", () => {
+      const setViewportWidth = (width: number) => {
+        Object.defineProperty(window, "innerWidth", {
+          writable: true,
+          configurable: true,
+          value: width,
+        });
+        window.dispatchEvent(new Event("resize"));
+      };
+
+      afterEach(() => {
+        setViewportWidth(1024);
+        document.body.classList.remove("bx--body--with-modal-open");
+      });
+
+      it("with expansionBreakpoint Infinity, overlay has --mobile and -active when open at desktop width", async () => {
+        setViewportWidth(1200);
+
+        const { container } = render(UiShell, {
+          props: {
+            expansionBreakpoint: Number.POSITIVE_INFINITY,
+            isSideNavOpen: true,
+            sideNavIsOpen: true,
+          },
+        });
+
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        const overlay = container.querySelector(".bx--side-nav__overlay");
+        expect(overlay).toBeInTheDocument();
+        expect(overlay).toHaveClass("bx--side-nav__overlay--mobile");
+        expect(overlay).toHaveClass("bx--side-nav__overlay-active");
+      });
+
+      it("with expansionBreakpoint Infinity, clicking overlay at desktop width closes side nav", async () => {
+        setViewportWidth(1200);
+        const consoleLog = vi.spyOn(console, "log");
+
+        const { container, component } = render(UiShell, {
+          props: {
+            expansionBreakpoint: Number.POSITIVE_INFINITY,
+            isSideNavOpen: true,
+            sideNavIsOpen: true,
+          },
+        });
+
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        const overlay = container.querySelector(".bx--side-nav__overlay");
+        assert(overlay);
+        await user.click(overlay);
+
+        expect(component.sideNavIsOpen).toBe(false);
+        expect(consoleLog).toHaveBeenCalledWith("sidenav-overlay-click");
+      });
+    });
+
     it("should render side nav links", () => {
       const { container } = render(UiShell);
 
@@ -467,6 +543,53 @@ describe("UIShell", () => {
       const nav = container.querySelector(".bx--side-nav");
       expect(nav).toHaveAttribute("aria-hidden", "false");
       expect(nav).not.toHaveStyle({ visibility: "hidden" });
+    });
+
+    // Regression test for https://github.com/carbon-design-system/carbon-components-svelte/issues/1383
+    describe("pre-hydration flicker prevention", () => {
+      const setInnerWidth = (value: number | undefined) => {
+        Object.defineProperty(window, "innerWidth", {
+          writable: true,
+          configurable: true,
+          value,
+        });
+      };
+
+      afterEach(() => {
+        setInnerWidth(1024);
+        window.dispatchEvent(new Event("resize"));
+      });
+
+      it("should not apply collapsed class or visibility:hidden when winWidth is undefined", () => {
+        setInnerWidth(undefined as unknown as number);
+
+        const { container } = render(UiShell, {
+          props: { sideNavIsOpen: false },
+        });
+
+        const nav = container.querySelector(".bx--side-nav");
+        expect(nav).not.toHaveClass("bx--side-nav--collapsed");
+        expect(nav).not.toHaveStyle({ visibility: "hidden" });
+      });
+
+      it("should apply collapsed state after viewport width becomes known", async () => {
+        setInnerWidth(undefined as unknown as number);
+
+        const { container } = render(UiShell, {
+          props: { sideNavIsOpen: false },
+        });
+
+        const nav = container.querySelector(".bx--side-nav");
+        expect(nav).not.toHaveClass("bx--side-nav--collapsed");
+
+        // Simulate hydration: viewport width becomes known.
+        setInnerWidth(500);
+        window.dispatchEvent(new Event("resize"));
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(nav).toHaveClass("bx--side-nav--collapsed");
+        expect(nav).toHaveStyle({ visibility: "hidden" });
+      });
     });
 
     it("should not apply visibility:hidden in rail mode when closed", () => {
@@ -529,6 +652,21 @@ describe("UIShell", () => {
         expect(content).not.toHaveStyle({ marginLeft: "0px" });
       });
 
+      // Regression test for https://github.com/carbon-design-system/carbon-components-svelte/issues/2701
+      it("should not unset left margin on mobile when SideNav is fixed", async () => {
+        setViewportWidth(500); // Mobile viewport
+
+        const { container } = render(UiShell, {
+          props: { sideNavIsOpen: true, sideNavFixed: true },
+        });
+
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        const content = container.querySelector(".bx--content");
+        // Fixed SideNav is always visible, so Content should keep its CSS margin
+        expect(content).not.toHaveStyle({ marginLeft: "0px" });
+      });
+
       it("should unset left margin when SideNav is collapsed on desktop", async () => {
         setViewportWidth(1200); // Desktop viewport
 
@@ -540,6 +678,136 @@ describe("UIShell", () => {
 
         const content = container.querySelector(".bx--content");
         expect(content).toHaveStyle({ marginLeft: "0px" });
+      });
+    });
+  });
+
+  describe("Generics", () => {
+    describe("HamburgerMenu", () => {
+      it("should support custom Icon types with generics", () => {
+        type CustomIcon = new (...args: unknown[]) => unknown;
+
+        type ComponentType = HamburgerMenuComponent<CustomIcon>;
+        type Props = ComponentProps<ComponentType>;
+
+        expectTypeOf<Props["iconMenu"]>().toEqualTypeOf<
+          CustomIcon | undefined
+        >();
+        expectTypeOf<Props["iconClose"]>().toEqualTypeOf<
+          CustomIcon | undefined
+        >();
+      });
+
+      it("should default to any type when generic is not specified", () => {
+        type ComponentType = HamburgerMenuComponent;
+        type Props = ComponentProps<ComponentType>;
+
+        // biome-ignore lint/suspicious/noExplicitAny: Testing default any type
+        expectTypeOf<Props["iconMenu"]>().toEqualTypeOf<any>();
+        // biome-ignore lint/suspicious/noExplicitAny: Testing default any type
+        expectTypeOf<Props["iconClose"]>().toEqualTypeOf<any>();
+      });
+    });
+
+    describe("Header", () => {
+      it("should support custom Icon types with generics", () => {
+        type CustomIcon = new (...args: unknown[]) => unknown;
+
+        type ComponentType = HeaderComponent<CustomIcon>;
+        type Props = ComponentProps<ComponentType>;
+
+        expectTypeOf<Props["iconMenu"]>().toEqualTypeOf<
+          CustomIcon | undefined
+        >();
+        expectTypeOf<Props["iconClose"]>().toEqualTypeOf<
+          CustomIcon | undefined
+        >();
+      });
+
+      it("should default to any type when generic is not specified", () => {
+        type ComponentType = HeaderComponent;
+        type Props = ComponentProps<ComponentType>;
+
+        // biome-ignore lint/suspicious/noExplicitAny: Testing default any type
+        expectTypeOf<Props["iconMenu"]>().toEqualTypeOf<any>();
+        // biome-ignore lint/suspicious/noExplicitAny: Testing default any type
+        expectTypeOf<Props["iconClose"]>().toEqualTypeOf<any>();
+      });
+    });
+
+    describe("HeaderActionLink", () => {
+      it("should support custom Icon types with generics", () => {
+        type CustomIcon = new (...args: unknown[]) => unknown;
+
+        type ComponentType = HeaderActionLinkComponent<CustomIcon>;
+        type Props = ComponentProps<ComponentType>;
+
+        expectTypeOf<Props["icon"]>().toEqualTypeOf<CustomIcon | undefined>();
+      });
+
+      it("should default to any type when generic is not specified", () => {
+        type ComponentType = HeaderActionLinkComponent;
+        type Props = ComponentProps<ComponentType>;
+
+        // biome-ignore lint/suspicious/noExplicitAny: Testing default any type
+        expectTypeOf<Props["icon"]>().toEqualTypeOf<any>();
+      });
+    });
+
+    describe("HeaderGlobalAction", () => {
+      it("should support custom Icon types with generics", () => {
+        type CustomIcon = new (...args: unknown[]) => unknown;
+
+        type ComponentType = HeaderGlobalActionComponent<CustomIcon>;
+        type Props = ComponentProps<ComponentType>;
+
+        expectTypeOf<Props["icon"]>().toExtend<CustomIcon | undefined>();
+      });
+
+      it("should default to any type when generic is not specified", () => {
+        type ComponentType = HeaderGlobalActionComponent;
+        type Props = ComponentProps<ComponentType>;
+
+        // biome-ignore lint/suspicious/noExplicitAny: Testing default any type
+        expectTypeOf<Props["icon"]>().toEqualTypeOf<any>();
+      });
+    });
+
+    describe("SideNavLink", () => {
+      it("should support custom Icon types with generics", () => {
+        type CustomIcon = new (...args: unknown[]) => unknown;
+
+        type ComponentType = SideNavLinkComponent<CustomIcon>;
+        type Props = ComponentProps<ComponentType>;
+
+        expectTypeOf<Props["icon"]>().toEqualTypeOf<CustomIcon | undefined>();
+      });
+
+      it("should default to any type when generic is not specified", () => {
+        type ComponentType = SideNavLinkComponent;
+        type Props = ComponentProps<ComponentType>;
+
+        // biome-ignore lint/suspicious/noExplicitAny: Testing default any type
+        expectTypeOf<Props["icon"]>().toEqualTypeOf<any>();
+      });
+    });
+
+    describe("SideNavMenu", () => {
+      it("should support custom Icon types with generics", () => {
+        type CustomIcon = new (...args: unknown[]) => unknown;
+
+        type ComponentType = SideNavMenuComponent<CustomIcon>;
+        type Props = ComponentProps<ComponentType>;
+
+        expectTypeOf<Props["icon"]>().toEqualTypeOf<CustomIcon | undefined>();
+      });
+
+      it("should default to any type when generic is not specified", () => {
+        type ComponentType = SideNavMenuComponent;
+        type Props = ComponentProps<ComponentType>;
+
+        // biome-ignore lint/suspicious/noExplicitAny: Testing default any type
+        expectTypeOf<Props["icon"]>().toEqualTypeOf<any>();
       });
     });
   });

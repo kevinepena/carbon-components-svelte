@@ -117,7 +117,7 @@
   <link
     rel="canonical"
     href="https://svelte.carbondesignsystem.com/components/{component}"
-  />
+  >
 </svelte:head>
 
 <Content data-components data-component={component}>
@@ -192,11 +192,9 @@
             {#each api_components as component (component.moduleName)}
               <Tab label={component.moduleName} />
             {/each}
-            <div slot="content" style="padding-top: var(--cds-spacing-06)">
+            <div slot="content" class="tab-content-spacing">
               {#each api_components as component (component.moduleName)}
-                <TabContent>
-                  <ComponentApi {component} />
-                </TabContent>
+                <TabContent> <ComponentApi {component} /> </TabContent>
               {/each}
             </div>
           </Tabs>
@@ -216,6 +214,10 @@
 </Content>
 
 <style>
+  .tab-content-spacing {
+    padding-top: var(--cds-spacing-06);
+  }
+
   .bar {
     display: flex;
     justify-content: space-between;

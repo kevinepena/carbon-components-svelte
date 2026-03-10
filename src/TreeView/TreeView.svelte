@@ -212,15 +212,17 @@
    * </button>
    * ```
    */
-  export function expandNodes(filterNode = (node) => false) {
+  export function expandNodes(filterNode = () => false) {
     const nodesToExpand = flattenedNodes
       .filter(
         (node) =>
           filterNode(node) ||
-          node.nodes?.some((child) => filterNode(child) && child.nodes)
+          node.nodes?.some((child) => filterNode(child) && child.nodes),
       )
       .map((node) => node.id);
-    nodesToExpand.forEach((id) => expandedIdsSet.add(id));
+    for (const id of nodesToExpand) {
+      expandedIdsSet.add(id);
+    }
     expandedIds = Array.from(expandedIdsSet);
     lastExpandedIdsRef = expandedIds;
   }
@@ -238,12 +240,12 @@
    * </button>
    * ```
    */
-  export function collapseNodes(filterNode = (node) => true) {
-    flattenedNodes.forEach((node) => {
+  export function collapseNodes(filterNode = () => true) {
+    for (const node of flattenedNodes) {
       if (expandedIdsSet.has(node.id) && filterNode(node)) {
         expandedIdsSet.delete(node.id);
       }
-    });
+    }
     expandedIds = Array.from(expandedIdsSet);
     lastExpandedIdsRef = expandedIds;
   }
@@ -299,7 +301,7 @@
     }
   }
 
-  import { createEventDispatcher, setContext, onMount, tick } from "svelte";
+  import { createEventDispatcher, onMount, setContext, tick } from "svelte";
   import { writable } from "svelte/store";
   import TreeViewNodeList from "./TreeViewNodeList.svelte";
 
@@ -388,7 +390,7 @@
   /** @type {(node: Node) => void} */
   const toggleNode = (node) => dispatch("toggle", node);
 
-  setContext("TreeView", {
+  setContext("carbon:TreeView", {
     activeNodeId,
     selectedNodeIds,
     expandedNodeIds,
@@ -418,7 +420,7 @@
 
   onMount(() => {
     const firstFocusableNode = ref.querySelector(
-      "li.bx--tree-node:not(.bx--tree-node--disabled)"
+      "li.bx--tree-node:not(.bx--tree-node--disabled)",
     );
 
     if (firstFocusableNode != null) {
@@ -515,8 +517,6 @@
   on:keydown|stopPropagation={handleKeyDown}
 >
   <TreeViewNodeList root {nodes} let:node>
-    <slot {node}>
-      {node.text}
-    </slot>
+    <slot {node}> {node.text} </slot>
   </TreeViewNodeList>
 </ul>

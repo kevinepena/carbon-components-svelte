@@ -199,12 +199,26 @@
   export let virtualize = undefined;
 
   /**
+   * Set to `true` to render the dropdown menu in a portal,
+   * allowing it to escape containers with `overflow: hidden`.
+   * When inside a Modal, defaults to `true` unless explicitly set to `false`.
+   * @type {boolean | undefined}
+   */
+  export let portalMenu = undefined;
+
+  /**
    * Obtain a reference to the list HTML element.
    * @type {null | HTMLDivElement}
    */
   export let listRef = null;
 
-  import { afterUpdate, createEventDispatcher, setContext, tick } from "svelte";
+  import {
+    afterUpdate,
+    createEventDispatcher,
+    getContext,
+    setContext,
+    tick,
+  } from "svelte";
   import Checkbox from "../Checkbox/Checkbox.svelte";
   import WarningAltFilled from "../icons/WarningAltFilled.svelte";
   import WarningFilled from "../icons/WarningFilled.svelte";
@@ -216,9 +230,14 @@
     ListBoxMenuItem,
     ListBoxSelection,
   } from "../ListBox";
+  import { getMenuMaxHeight } from "../ListBox/list-box-utils.js";
   import { virtualize as virtualizeUtil } from "../utils/virtualize.js";
 
   const dispatch = createEventDispatcher();
+  const insideModal = getContext("carbon:Modal");
+
+  $: effectivePortalMenu =
+    portalMenu !== undefined ? portalMenu : !!insideModal;
 
   /** Default item height in pixels for virtualization */
   const DEFAULT_ITEM_HEIGHT = 40;
@@ -243,7 +262,7 @@
     }
   };
 
-  setContext("MultiSelect", {
+  setContext("carbon:MultiSelect", {
     declareRef,
   });
 
@@ -443,6 +462,8 @@
 
   $: itemsToUse = filterable ? filteredItems : sortedItems;
 
+  $: menuMaxHeight = getMenuMaxHeight(size);
+
   $: virtualData = virtualConfig
     ? virtualizeUtil({
         items: itemsToUse,
@@ -459,6 +480,7 @@
 <svelte:window
   on:click={({ target }) => {
     if (open && multiSelectRef && !multiSelectRef.contains(target)) {
+      if (effectivePortalMenu && listRef && listRef.contains(target)) return;
       open = false;
     }
   }}
@@ -479,9 +501,7 @@
       class:bx--label--disabled={disabled}
       class:bx--visually-hidden={hideLabel}
     >
-      <slot name="labelChildren">
-        {labelText}
-      </slot>
+      <slot name="labelChildren"> {labelText} </slot>
     </label>
   {/if}
   <ListBox
@@ -593,7 +613,7 @@
           {placeholder}
           {id}
           {name}
-        />
+        >
         {#if invalid}
           <WarningFilled class="bx--list-box__invalid-icon" />
         {/if}
@@ -687,19 +707,27 @@
         <ListBoxMenuIcon {open} {translateWithId} />
       </ListBoxField>
     {/if}
-    <div style:display={open ? "block" : "none"}>
+    <div style:display={open || effectivePortalMenu ? "block" : "none"}>
       <ListBoxMenu
         aria-label={ariaLabel}
         {id}
+        portal={effectivePortalMenu}
+        {open}
+        anchor={fieldRef}
+        {direction}
         aria-multiselectable="true"
         on:scroll
         on:scroll={(e) => {
           listScrollTop = e.target.scrollTop;
         }}
         bind:ref={listRef}
-        style={virtualConfig
-          ? `max-height: ${virtualConfig.containerHeight}px; overflow-y: auto;`
-          : undefined}
+        style={effectivePortalMenu
+          ? `max-height: ${virtualConfig
+              ? `${virtualConfig.containerHeight}px; overflow-y: auto`
+              : menuMaxHeight};`
+          : virtualConfig
+            ? `max-height: ${virtualConfig.containerHeight}px; overflow-y: auto;`
+            : undefined}
       >
         {#if virtualData?.isVirtualized}
           <div style="height: {virtualData.totalHeight}px; position: relative;">

@@ -103,7 +103,7 @@
     }));
   };
 
-  setContext("Select", {
+  setContext("carbon:Select", {
     selectedValue,
     setDefaultValue,
   });
@@ -171,9 +171,7 @@
         class:bx--visually-hidden={hideLabel}
         class:bx--label--disabled={disabled}
       >
-        <slot name="labelChildren">
-          {labelText}
-        </slot>
+        <slot name="labelChildren"> {labelText} </slot>
       </label>
     {/if}
     {#if inline}
@@ -286,14 +284,10 @@
         </div>
       {/if}
       {#if invalid}
-        <div id={errorId} class:bx--form-requirement={true}>
-          {invalidText}
-        </div>
+        <div id={errorId} class:bx--form-requirement={true}>{invalidText}</div>
       {/if}
       {#if !invalid && warn}
-        <div id={warnId} class:bx--form-requirement={true}>
-          {warnText}
-        </div>
+        <div id={warnId} class:bx--form-requirement={true}>{warnText}</div>
       {/if}
     {/if}
   </div>

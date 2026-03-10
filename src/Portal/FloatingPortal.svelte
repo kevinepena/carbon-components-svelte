@@ -1,0 +1,218 @@
+<script>
+  /**
+   * @slot {{ direction: "bottom" | "top" }}
+   */
+
+  /**
+   * Required. Specify the anchor element to position the floating content relative to.
+   * When using `bind:this`, this may be `null` initially until the element is mounted.
+   * @type {null | HTMLElement}
+   */
+  export let anchor;
+
+  /**
+   * Set the preferred direction of the floating content.
+   * The component will flip to the opposite direction
+   * if there is not enough space.
+   * @type {"bottom" | "top"}
+   */
+  export let direction = "bottom";
+
+  /**
+   * Set to `true` to open the floating content.
+   * @type {boolean}
+   */
+  export let open = false;
+
+  /**
+   * Specify the z-index of the floating portal.
+   * By default, this value supersedes the z-index
+   * of modals (9000) and list box menus (9100).
+   */
+  export let zIndex = 9200;
+
+  /**
+   * Obtain a reference to the floating portal element.
+   * @type {null | HTMLElement}
+   */
+  export let ref = null;
+
+  import { onMount, tick } from "svelte";
+  import Portal from "./Portal.svelte";
+
+  const SCROLLABLE_OVERFLOW_REGEX = /(auto|scroll)/;
+
+  let mounted = true;
+
+  /** @type {Array<HTMLElement | Document>} */
+  let scrollableAncestors = [];
+
+  /**
+   * Walk up from the anchor element and collect every
+   * scrollable ancestor so we can listen for their scroll events.
+   * @param {HTMLElement} node
+   * @returns {Array<HTMLElement | Document>}
+   */
+  function getScrollableAncestors(node) {
+    /** @type {Array<HTMLElement | Document>} */
+    const result = [];
+    let current = node.parentElement;
+
+    while (current) {
+      const { overflow, overflowX, overflowY } = getComputedStyle(current);
+
+      if (SCROLLABLE_OVERFLOW_REGEX.test(overflow + overflowY + overflowX)) {
+        result.push(current);
+      }
+
+      current = current.parentElement;
+    }
+
+    return result;
+  }
+
+  function addScrollListeners() {
+    for (const el of scrollableAncestors) {
+      el.addEventListener("scroll", scheduleUpdate, { passive: true });
+    }
+  }
+
+  function removeScrollListeners() {
+    for (const el of scrollableAncestors) {
+      el.removeEventListener("scroll", scheduleUpdate);
+    }
+  }
+
+  onMount(() => {
+    return () => {
+      mounted = false;
+      unobserveAnchor();
+      removeScrollListeners();
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+    };
+  });
+
+  /** @type {{ top: number, left: number, width: number, actualDirection: "bottom" | "top" }} */
+  let pos = {
+    top: 0,
+    left: 0,
+    width: 0,
+    actualDirection: direction,
+  };
+
+  /** @type {number | null} */
+  let rafId = null;
+
+  /** @type {MutationObserver | null} */
+  let anchorObserver = null;
+
+  function observeAnchor() {
+    if (!anchor || anchorObserver) return;
+    anchorObserver = new MutationObserver(scheduleUpdate);
+    anchorObserver.observe(anchor, {
+      attributes: true,
+      attributeFilter: ["style", "class"],
+      childList: false,
+      subtree: false,
+    });
+  }
+
+  function unobserveAnchor() {
+    if (anchorObserver && anchor) {
+      anchorObserver.disconnect();
+      anchorObserver = null;
+    }
+  }
+
+  function updatePosition() {
+    if (!mounted || !anchor || !ref) return;
+
+    const rect = anchor.getBoundingClientRect();
+    const floatingRect = ref.getBoundingClientRect();
+
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    let actualDirection = direction;
+
+    if (
+      direction === "bottom" &&
+      spaceBelow < floatingRect.height &&
+      spaceAbove > spaceBelow
+    ) {
+      actualDirection = "top";
+    } else if (
+      direction === "top" &&
+      spaceAbove < floatingRect.height &&
+      spaceBelow > spaceAbove
+    ) {
+      actualDirection = "bottom";
+    }
+
+    /** @type {number} */
+    let top;
+
+    if (actualDirection === "bottom") {
+      top = rect.bottom + window.scrollY;
+    } else {
+      top = rect.top + window.scrollY - floatingRect.height;
+    }
+
+    pos = {
+      top,
+      left: rect.left + window.scrollX,
+      width: rect.width,
+      actualDirection,
+    };
+  }
+
+  function scheduleUpdate() {
+    if (rafId !== null) return;
+    rafId = requestAnimationFrame(() => {
+      rafId = null;
+      updatePosition();
+    });
+  }
+
+  // The actual rendered direction after auto-flipping.
+  $: actualDirection = pos.actualDirection;
+
+  $: if (!open) {
+    unobserveAnchor();
+    removeScrollListeners();
+    scrollableAncestors = [];
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+  }
+
+  $: if (open && anchor && ref) {
+    unobserveAnchor();
+    removeScrollListeners();
+    scrollableAncestors = getScrollableAncestors(anchor);
+    addScrollListeners();
+    observeAnchor();
+    tick().then(updatePosition);
+  }
+</script>
+
+<svelte:window
+  on:scroll|passive={open ? scheduleUpdate : undefined}
+  on:resize|passive={open ? scheduleUpdate : undefined}
+/>
+
+{#if open}
+  <Portal
+    bind:ref
+    {...$$restProps}
+    data-floating-portal
+    data-floating-direction={pos.actualDirection}
+    style="position: absolute; top: {pos.top}px; left: {pos.left}px; width: {pos.width}px; z-index: {zIndex};"
+  >
+    <slot direction={actualDirection} />
+  </Portal>
+{/if}

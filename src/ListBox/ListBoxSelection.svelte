@@ -42,7 +42,7 @@
     [translationIds.clearSelection]: "Clear selected item",
   };
   const dispatch = createEventDispatcher();
-  const ctx = getContext("MultiSelect");
+  const ctx = getContext("carbon:MultiSelect");
 
   $: if (ctx && ref) {
     ctx.declareRef({ key: "selection", ref });
@@ -112,7 +112,9 @@
       }
     }}
   >
-    {#if selectionCount !== undefined}{selectionCount}{/if}
+    {#if selectionCount !== undefined}
+      {selectionCount}
+    {/if}
     <Close />
   </div>
 {/if}

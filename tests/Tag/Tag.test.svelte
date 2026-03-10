@@ -36,8 +36,10 @@
   }}
   on:close={() => {
     console.log("close");
-  }}>Filterable</Tag
+  }}
 >
+  Filterable
+</Tag>
 
 <Tag icon={Add}>Custom icon</Tag>
 
@@ -45,8 +47,10 @@
   interactive
   on:click={() => {
     console.log("click");
-  }}>Text</Tag
+  }}
 >
+  Text
+</Tag>
 
 <Tag skeleton />
 
@@ -67,10 +71,24 @@
   }}
   on:mouseleave={() => {
     console.log("mouseleave");
-  }}>Mouse events</Tag
+  }}
 >
+  Mouse events
+</Tag>
 
 <Tag interactive>
   <Add slot="icon" />
   Icon slot
+</Tag>
+
+<Tag
+  filter
+  on:click={() => {
+    console.log("filter-body-click");
+  }}
+  on:close={() => {
+    console.log("filter-close");
+  }}
+>
+  Filter click and close
 </Tag>

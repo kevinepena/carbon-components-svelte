@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/svelte";
 import { tick } from "svelte";
+import PortalFocusTest from "./Portal.focus.test.svelte";
 import PortalMultipleTest from "./Portal.multiple.test.svelte";
 import PortalTest from "./Portal.test.svelte";
 
@@ -163,6 +164,48 @@ describe("Portal", () => {
     unmount2();
   });
 
+  it("binds ref to the portal element", async () => {
+    const { component } = render(PortalTest);
+
+    const portalContent = await screen.findByText("Portal content");
+    const portalElement = portalContent.closest("[data-portal]");
+    assert(portalElement instanceof HTMLElement);
+
+    expect(component.ref).toBeInstanceOf(HTMLElement);
+    expect(component.ref).toBe(portalElement);
+    expect(component.ref).toHaveAttribute("data-portal");
+  });
+
+  it("ref is null when portal is not rendered", () => {
+    const { component } = render(PortalTest, {
+      props: { showPortal: false },
+    });
+
+    expect(component.ref).toBeNull();
+  });
+
+  it("ref updates when portal is conditionally shown", async () => {
+    const { component, rerender } = render(PortalTest, {
+      props: { showPortal: false },
+    });
+
+    expect(component.ref).toBeNull();
+
+    rerender({ showPortal: true });
+
+    const portalContent = await screen.findByText("Portal content");
+    const portalElement = portalContent.closest("[data-portal]");
+    assert(portalElement instanceof HTMLElement);
+
+    expect(component.ref).toBeInstanceOf(HTMLElement);
+    expect(component.ref).toBe(portalElement);
+
+    rerender({ showPortal: false });
+    await tick();
+
+    expect(component.ref).toBeNull();
+  });
+
   it("forwards rest props to the portal element", async () => {
     render(PortalTest, {
       props: {
@@ -183,5 +226,15 @@ describe("Portal", () => {
     expect(portalElement).toHaveAttribute("data-testid", "portal-test");
     expect(portalElement).toHaveAttribute("aria-label", "Test portal");
     expect(portalElement.getAttribute("style")).toContain("background-color");
+  });
+
+  describe("focus preservation when moving to body", () => {
+    it("preserves focus on element inside portal when it is moved to document.body", async () => {
+      render(PortalFocusTest);
+
+      const input = await screen.findByTestId("portal-input");
+      expect(input).toBeInTheDocument();
+      expect(input).toHaveFocus();
+    });
   });
 });

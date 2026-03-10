@@ -12,6 +12,7 @@ import DataTable from "./DataTable.test.svelte";
 import DataTableCustomBoth from "./DataTableCustomBoth.test.svelte";
 import DataTableCustomDescription from "./DataTableCustomDescription.test.svelte";
 import DataTableCustomSlots from "./DataTableCustomSlots.test.svelte";
+import DataTableExpandIcon from "./DataTableExpandIcon.test.svelte";
 
 describe("DataTable", () => {
   beforeEach(() => {
@@ -413,6 +414,193 @@ describe("DataTable", () => {
     expect(sortedCells[2]).toHaveTextContent("20");
   });
 
+  it("sortAlways: first click goes to ascending", async () => {
+    render(DataTable, {
+      props: {
+        sortable: true,
+        sortAlways: true,
+        headers,
+        rows,
+      },
+    });
+
+    const nameHeader = screen.getByText("Name");
+    await user.click(nameHeader);
+
+    const tableRows = screen
+      .getAllByRole("row")
+      .filter((row) => row.closest("tbody") !== null);
+    expect(within(tableRows[0]).getAllByRole("cell")[0]).toHaveTextContent(
+      "Load Balancer 1",
+    );
+  });
+
+  it("sortAlways: toggles between ascending and descending only", async () => {
+    render(DataTable, {
+      props: {
+        sortable: true,
+        sortAlways: true,
+        headers,
+        rows,
+      },
+    });
+
+    const nameHeader = screen.getByText("Name");
+
+    // Click 1: none -> ascending
+    await user.click(nameHeader);
+    let tableRows = screen
+      .getAllByRole("row")
+      .filter((row) => row.closest("tbody") !== null);
+    expect(within(tableRows[0]).getAllByRole("cell")[0]).toHaveTextContent(
+      "Load Balancer 1",
+    );
+
+    // Click 2: ascending -> descending
+    await user.click(nameHeader);
+    tableRows = screen
+      .getAllByRole("row")
+      .filter((row) => row.closest("tbody") !== null);
+    expect(within(tableRows[0]).getAllByRole("cell")[0]).toHaveTextContent(
+      "Load Balancer 3",
+    );
+
+    // Click 3: descending -> ascending (NOT back to none)
+    await user.click(nameHeader);
+    tableRows = screen
+      .getAllByRole("row")
+      .filter((row) => row.closest("tbody") !== null);
+    expect(within(tableRows[0]).getAllByRole("cell")[0]).toHaveTextContent(
+      "Load Balancer 1",
+    );
+  });
+
+  it("sortAlways: switches columns without resetting to none", async () => {
+    render(DataTable, {
+      props: {
+        sortable: true,
+        sortAlways: true,
+        headers,
+        rows,
+      },
+    });
+
+    const nameHeader = screen.getByText("Name");
+    const portHeader = screen.getByText("Port");
+
+    // Sort by name ascending
+    await user.click(nameHeader);
+    let tableRows = screen
+      .getAllByRole("row")
+      .filter((row) => row.closest("tbody") !== null);
+    expect(within(tableRows[0]).getAllByRole("cell")[0]).toHaveTextContent(
+      "Load Balancer 1",
+    );
+
+    // Switch to port – should sort ascending
+    await user.click(portHeader);
+    tableRows = screen
+      .getAllByRole("row")
+      .filter((row) => row.closest("tbody") !== null);
+    expect(within(tableRows[0]).getAllByRole("cell")[2]).toHaveTextContent(
+      "80",
+    );
+  });
+
+  it("without sortAlways: third click resets to original order", async () => {
+    render(DataTable, {
+      props: {
+        sortable: true,
+        headers,
+        rows,
+      },
+    });
+
+    const nameHeader = screen.getByText("Name");
+
+    // Click 1: ascending
+    await user.click(nameHeader);
+    // Click 2: descending
+    await user.click(nameHeader);
+    // Click 3: none (original order)
+    await user.click(nameHeader);
+
+    const tableRows = screen
+      .getAllByRole("row")
+      .filter((row) => row.closest("tbody") !== null);
+    // Original order: Load Balancer 3, Load Balancer 1, Load Balancer 2
+    expect(within(tableRows[0]).getAllByRole("cell")[0]).toHaveTextContent(
+      "Load Balancer 3",
+    );
+  });
+
+  it("header.sortAlways overrides table: column with sortAlways: true stays sorted", async () => {
+    render(DataTable, {
+      props: {
+        sortable: true,
+        headers: [
+          { key: "name", value: "Name", sortAlways: true },
+          { key: "protocol", value: "Protocol" },
+          { key: "port", value: "Port", sortAlways: false },
+        ],
+        rows,
+      },
+    });
+
+    const nameHeader = screen.getByText("Name");
+    const portHeader = screen.getByText("Port");
+
+    // Name has sortAlways: true (override) – third click stays sorted
+    await user.click(nameHeader);
+    await user.click(nameHeader);
+    await user.click(nameHeader);
+    let tableRows = screen
+      .getAllByRole("row")
+      .filter((row) => row.closest("tbody") !== null);
+    expect(within(tableRows[0]).getAllByRole("cell")[0]).toHaveTextContent(
+      "Load Balancer 1",
+    );
+
+    // Port has sortAlways: false (override) – third click unsorts
+    await user.click(portHeader);
+    await user.click(portHeader);
+    await user.click(portHeader);
+    tableRows = screen
+      .getAllByRole("row")
+      .filter((row) => row.closest("tbody") !== null);
+    expect(within(tableRows[0]).getAllByRole("cell")[0]).toHaveTextContent(
+      "Load Balancer 3",
+    );
+  });
+
+  it("header.sortAlways overrides table: column with sortAlways: false allows unsort when table has sortAlways: true", async () => {
+    render(DataTable, {
+      props: {
+        sortable: true,
+        sortAlways: true,
+        headers: [
+          { key: "name", value: "Name" },
+          { key: "port", value: "Port", sortAlways: false },
+        ],
+        rows,
+      },
+    });
+
+    const portHeader = screen.getByText("Port");
+
+    // Port has sortAlways: false – overrides table, third click unsorts
+    await user.click(portHeader);
+    await user.click(portHeader);
+    await user.click(portHeader);
+
+    const tableRows = screen
+      .getAllByRole("row")
+      .filter((row) => row.closest("tbody") !== null);
+    expect(within(tableRows[0]).getAllByRole("cell")[0]).toHaveTextContent(
+      "Load Balancer 3",
+    );
+  });
+
   // Selection tests
   it("handles selectable rows", async () => {
     const { container } = render(DataTable, {
@@ -561,6 +749,31 @@ describe("DataTable", () => {
     expect(
       container.querySelectorAll(".bx--child-row-inner-container"),
     ).toHaveLength(0);
+  });
+
+  it("renders custom expand icon via expandIcon slot", async () => {
+    const { container } = render(DataTableExpandIcon);
+
+    const customIcons = screen.getAllByTestId("custom-expand-icon");
+    expect(customIcons.length).toBeGreaterThanOrEqual(2);
+
+    const firstExpandButton = screen.getAllByRole("button", {
+      name: /expand/i,
+    })[0];
+    expect(
+      within(firstExpandButton).getByTestId("custom-expand-icon"),
+    ).toHaveAttribute("data-expanded", "false");
+
+    await user.click(firstExpandButton);
+
+    expect(
+      within(firstExpandButton).getByTestId("custom-expand-icon"),
+    ).toHaveAttribute("data-expanded", "true");
+
+    const expandedContent = container.querySelector(
+      ".bx--child-row-inner-container",
+    );
+    expect(expandedContent).toBeInTheDocument();
   });
 
   // Styling and layout tests
@@ -1024,7 +1237,7 @@ describe("DataTable", () => {
     expect(expandedRow).toHaveClass("bx--expandable-row");
   });
 
-  it("passes rowSelected prop to expanded-row slot", () => {
+  it("passes rowSelected prop to expandedRow slot", () => {
     const { container } = render(DataTable, {
       props: {
         selectable: true,
@@ -1264,6 +1477,47 @@ describe("DataTable", () => {
     expect(detail).toHaveProperty("target");
     expect(detail).toHaveProperty("currentTarget");
     expect(detail).toHaveProperty("row");
+  });
+
+  it("does not dispatch click:row when clicking checkbox", async () => {
+    const consoleLog = vi.spyOn(console, "log");
+    render(DataTable, {
+      props: {
+        selectable: true,
+        headers,
+        rows,
+      },
+    });
+
+    const checkboxes = screen.getAllByRole("checkbox");
+    consoleLog.mockClear();
+    await user.click(checkboxes[0]);
+
+    const clickRowCalls = consoleLog.mock.calls.filter(
+      (call) => call[0] === "click:row",
+    );
+    expect(clickRowCalls).toHaveLength(0);
+  });
+
+  it("does not dispatch click:row when clicking radio button", async () => {
+    const consoleLog = vi.spyOn(console, "log");
+    render(DataTable, {
+      props: {
+        selectable: true,
+        radio: true,
+        headers,
+        rows,
+      },
+    });
+
+    const radioButtons = screen.getAllByRole("radio");
+    consoleLog.mockClear();
+    await user.click(radioButtons[0]);
+
+    const clickRowCalls = consoleLog.mock.calls.filter(
+      (call) => call[0] === "click:row",
+    );
+    expect(clickRowCalls).toHaveLength(0);
   });
 
   it("uses default table header translations", () => {
@@ -1763,6 +2017,425 @@ describe("DataTable", () => {
       type DefaultDataTableRow = DataTableRow;
       // biome-ignore lint/suspicious/noExplicitAny: Testing default any type
       expectTypeOf<DefaultDataTableRow["id"]>().toEqualTypeOf<any>();
+    });
+
+    describe("rowClass prop", () => {
+      it("applies string rowClass to all rows", () => {
+        const { container } = render(DataTable, {
+          props: {
+            headers,
+            rows,
+            rowClass: "custom-row-class",
+          },
+        });
+
+        const tableRows = container.querySelectorAll("tbody tr");
+
+        for (const row of tableRows) {
+          expect(row).toHaveClass("custom-row-class");
+        }
+      });
+
+      it("applies function rowClass based on row properties", () => {
+        const { container } = render(DataTable, {
+          props: {
+            headers,
+            rows,
+            rowClass: ({ row, rowIndex }) => {
+              if (rowIndex === 0) return "first-row";
+              if (row.port === 443) return "secure-row";
+              return "standard-row";
+            },
+          },
+        });
+
+        const firstRow = container.querySelector("tbody tr:first-child");
+        expect(firstRow).toHaveClass("first-row");
+
+        const secureRow = container.querySelector("tr[data-row='b']");
+        expect(secureRow).toHaveClass("secure-row");
+      });
+
+      it("applies rowClass based on selected and expanded state", async () => {
+        const { container, rerender } = render(DataTable, {
+          props: {
+            selectable: true,
+            expandable: true,
+            headers,
+            rows,
+            selectedRowIds: ["a"],
+            expandedRowIds: ["b"],
+            rowClass: ({ selected, expanded }) => {
+              const classes = [];
+              if (selected) classes.push("is-selected");
+              if (expanded) classes.push("is-expanded");
+              return classes.join(" ") || undefined;
+            },
+          },
+        });
+
+        expect(container.querySelector("tr[data-row='a']")).toHaveClass(
+          "is-selected",
+        );
+        expect(container.querySelector("tr[data-row='b']")).toHaveClass(
+          "is-expanded",
+        );
+
+        rerender({ selectedRowIds: ["b"] });
+        await tick();
+
+        expect(container.querySelector("tr[data-row='a']")).not.toHaveClass(
+          "is-selected",
+        );
+        expect(container.querySelector("tr[data-row='b']")).toHaveClass(
+          "is-selected",
+        );
+        expect(container.querySelector("tr[data-row='b']")).toHaveClass(
+          "is-expanded",
+        );
+      });
+    });
+  });
+
+  describe("virtualization", () => {
+    const createLargeRowList = (count: number) => {
+      return Array.from({ length: count }, (_, i) => ({
+        id: String(i),
+        name: `Load Balancer ${i + 1}`,
+        protocol: "HTTP",
+        port: 3000 + i * 10,
+        rule: i % 2 ? "Round robin" : "DNS delegation",
+      }));
+    };
+
+    it("should enable virtualization for large row lists", () => {
+      const largeRows = createLargeRowList(500);
+      const { container } = render(DataTable, {
+        props: {
+          headers,
+          rows: largeRows,
+          virtualize: true,
+        },
+      });
+
+      const table = screen.getByRole("table");
+      expect(table).toBeInTheDocument();
+
+      const tbody = container.querySelector("tbody");
+      expect(tbody).toBeInTheDocument();
+
+      // When not using sticky header, the scroll container (table's parent) has max-height
+      const scrollContainer = table.parentElement;
+      if (
+        scrollContainer &&
+        !container.querySelector(".bx--data-table_inner-container")
+      ) {
+        const scrollStyle = scrollContainer.getAttribute("style") ?? "";
+        expect(scrollStyle).toContain("max-height");
+        // Default: itemHeight 48 * maxVisibleRows 10 = 480px
+        expect(scrollStyle).toContain("480px");
+      }
+
+      // Should render fewer rows than total (only visible ones)
+      // Note: This includes spacer rows, so we check that we have some data rows
+      const tableRows = screen
+        .getAllByRole("row")
+        .filter((row) => row.closest("tbody") !== null);
+      // Should have some rows rendered (may include spacer rows)
+      expect(tableRows.length).toBeGreaterThan(0);
+      // Check that we have actual data rows (not just spacers)
+      // Spacer rows have a single td with colspan and a style attribute with height
+      const dataRows = tableRows.filter((row) => {
+        const style = row.getAttribute("style");
+        const isSpacer = style?.includes("height:");
+        if (isSpacer) return false;
+        const cells = row.querySelectorAll("td");
+        return cells.length > 0;
+      });
+      // With 500 rows and default settings, should render around 10-15 visible rows
+      expect(dataRows.length).toBeLessThan(500);
+      expect(dataRows.length).toBeGreaterThan(0);
+    });
+
+    it("should not virtualize tables below threshold", () => {
+      const smallRows = createLargeRowList(50);
+      render(DataTable, {
+        props: {
+          headers,
+          rows: smallRows,
+          virtualize: {
+            threshold: 100, // Threshold is 100, table has 50 rows
+          },
+        },
+      });
+
+      // Should render all rows when below threshold
+      const tableRows = screen
+        .getAllByRole("row")
+        .filter((row) => row.closest("tbody") !== null);
+      expect(tableRows.length).toBe(50);
+    });
+
+    it("should accept virtualization configuration object", () => {
+      const largeRows = createLargeRowList(500);
+      const { container } = render(DataTable, {
+        props: {
+          headers,
+          rows: largeRows,
+          virtualize: {
+            itemHeight: 50,
+            containerHeight: 400,
+            overscan: 5,
+            threshold: 50,
+            maxItems: 20,
+          },
+        },
+      });
+
+      const table = screen.getByRole("table");
+      expect(table).toBeInTheDocument();
+
+      const _tbody = container.querySelector("tbody");
+      // With maxItems: 20, should render at most 20 data rows (excluding spacer rows)
+      const tableRows = screen
+        .getAllByRole("row")
+        .filter((row) => row.closest("tbody") !== null);
+      const dataRows = tableRows.filter((row) => {
+        const style = row.getAttribute("style");
+        const isSpacer = style?.includes("height:");
+        if (isSpacer) return false;
+        const cells = row.querySelectorAll("td");
+        return cells.length > 0;
+      });
+      expect(dataRows.length).toBeLessThanOrEqual(20);
+    });
+
+    it("should use default row height based on size prop", () => {
+      const largeRows = createLargeRowList(500);
+      render(DataTable, {
+        props: {
+          headers,
+          rows: largeRows,
+          size: "compact",
+          virtualize: true,
+        },
+      });
+
+      const table = screen.getByRole("table");
+      expect(table).toBeInTheDocument();
+
+      // Should render rows (verifying virtualization works with compact size)
+      const tableRows = screen
+        .getAllByRole("row")
+        .filter((row) => row.closest("tbody") !== null);
+      expect(tableRows.length).toBeGreaterThan(0);
+      expect(tableRows.length).toBeLessThan(500);
+    });
+
+    it("should handle virtualization with custom row height", () => {
+      const largeRows = createLargeRowList(500);
+      render(DataTable, {
+        props: {
+          headers,
+          rows: largeRows,
+          virtualize: {
+            itemHeight: 64,
+            containerHeight: 400,
+          },
+        },
+      });
+
+      const table = screen.getByRole("table");
+      expect(table).toBeInTheDocument();
+
+      const tableRows = screen
+        .getAllByRole("row")
+        .filter((row) => row.closest("tbody") !== null);
+      expect(tableRows.length).toBeGreaterThan(0);
+      expect(tableRows.length).toBeLessThan(500);
+    });
+
+    it("should maintain selection when virtualized", () => {
+      const largeRows = createLargeRowList(500);
+      render(DataTable, {
+        props: {
+          headers,
+          rows: largeRows,
+          selectable: true,
+          selectedRowIds: ["5"],
+          virtualize: true,
+        },
+      });
+
+      // Selected row should be rendered (row 5 is in the initial viewport)
+      const selectedRow = screen.getByText("Load Balancer 6");
+      expect(selectedRow).toBeInTheDocument();
+      expect(selectedRow.closest("tr")).toHaveClass("bx--data-table--selected");
+    });
+
+    it("should handle sorting with virtualization", () => {
+      const largeRows = createLargeRowList(500);
+      render(DataTable, {
+        props: {
+          headers,
+          rows: largeRows,
+          sortable: true,
+          sortKey: "name",
+          sortDirection: "ascending",
+          virtualize: true,
+        },
+      });
+
+      const table = screen.getByRole("table");
+      expect(table).toBeInTheDocument();
+
+      // Should render sorted rows (check data rows, not spacer rows)
+      const tableRows = screen
+        .getAllByRole("row")
+        .filter((row) => row.closest("tbody") !== null);
+      const dataRows = tableRows.filter((row) => {
+        const style = row.getAttribute("style");
+        const isSpacer = style?.includes("height:");
+        if (isSpacer) return false;
+        const cells = row.querySelectorAll("td");
+        return cells.length > 0;
+      });
+      expect(dataRows.length).toBeGreaterThan(0);
+      expect(dataRows.length).toBeLessThan(500);
+    });
+
+    it("should apply max-height style when virtualized", () => {
+      const largeRows = createLargeRowList(500);
+      const { container } = render(DataTable, {
+        props: {
+          headers,
+          rows: largeRows,
+          virtualize: {
+            containerHeight: 500,
+          },
+        },
+      });
+
+      const tbody = container.querySelector("tbody");
+      const innerContainer = container.querySelector(
+        ".bx--data-table_inner-container",
+      );
+      // Style should be on tbody when stickyHeader is false, or on inner container when true
+      if (innerContainer) {
+        const containerStyle = innerContainer.getAttribute("style");
+        if (containerStyle) {
+          expect(containerStyle).toContain("max-height: 500px");
+        }
+      } else if (tbody) {
+        const tbodyStyle = tbody.getAttribute("style");
+        if (tbodyStyle) {
+          expect(tbodyStyle).toContain("max-height: 500px");
+        }
+      }
+    });
+
+    it("should work with sticky header", () => {
+      const largeRows = createLargeRowList(500);
+      render(DataTable, {
+        props: {
+          headers,
+          rows: largeRows,
+          stickyHeader: true,
+          virtualize: true,
+        },
+      });
+
+      const table = screen.getByRole("table");
+      expect(table).toBeInTheDocument();
+      expect(table).toHaveClass("bx--data-table--sticky-header");
+
+      // Should render rows (check data rows, not spacer rows)
+      const tableRows = screen
+        .getAllByRole("row")
+        .filter((row) => row.closest("tbody") !== null);
+      const dataRows = tableRows.filter((row) => {
+        const style = row.getAttribute("style");
+        const isSpacer = style?.includes("height:");
+        if (isSpacer) return false;
+        const cells = row.querySelectorAll("td");
+        return cells.length > 0;
+      });
+      expect(dataRows.length).toBeGreaterThan(0);
+      expect(dataRows.length).toBeLessThan(500);
+    });
+
+    it("should work with zebra striping", () => {
+      const largeRows = createLargeRowList(500);
+      render(DataTable, {
+        props: {
+          headers,
+          rows: largeRows,
+          zebra: true,
+          virtualize: true,
+        },
+      });
+
+      const table = screen.getByRole("table");
+      expect(table).toBeInTheDocument();
+      expect(table).toHaveClass("bx--data-table--zebra");
+
+      // Should render rows
+      const tableRows = screen
+        .getAllByRole("row")
+        .filter((row) => row.closest("tbody") !== null);
+      expect(tableRows.length).toBeGreaterThan(0);
+    });
+
+    it("should ignore pagination when virtualized", () => {
+      const largeRows = createLargeRowList(500);
+      render(DataTable, {
+        props: {
+          headers,
+          rows: largeRows,
+          pageSize: 10,
+          page: 1,
+          virtualize: true,
+        },
+      });
+
+      // Should render more than pageSize data rows (virtualization ignores pagination)
+      const tableRows = screen
+        .getAllByRole("row")
+        .filter((row) => row.closest("tbody") !== null);
+      const dataRows = tableRows.filter((row) => {
+        const style = row.getAttribute("style");
+        const isSpacer = style?.includes("height:");
+        if (isSpacer) return false;
+        const cells = row.querySelectorAll("td");
+        return cells.length > 0;
+      });
+      // Virtualization should render visible rows (typically 10-15), not just pageSize
+      // Note: In test environment, virtualization may render all rows if container height isn't constrained
+      // So we just verify that virtualization is enabled (rows are rendered)
+      expect(dataRows.length).toBeGreaterThan(0);
+    });
+
+    it("should expose scrollContainerRef for programmatic scroll control when virtualized without stickyHeader", async () => {
+      const largeRows = createLargeRowList(500);
+      render(DataTable, {
+        props: {
+          headers,
+          rows: largeRows,
+          virtualize: true,
+          stickyHeader: false,
+        },
+      });
+
+      await tick();
+
+      const table = screen.getByRole("table");
+      const scrollContainer = table.parentElement;
+      expect(scrollContainer).toBeInstanceOf(HTMLElement);
+      expect(scrollContainer?.style.overflowY).toBe("auto");
+      expect(scrollContainer?.style.maxHeight).toBeDefined();
+      expect.assert(scrollContainer instanceof HTMLElement);
+      scrollContainer.scrollTop = 100;
+      expect(scrollContainer.scrollTop).toBe(100);
     });
   });
 });

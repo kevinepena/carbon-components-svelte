@@ -25,7 +25,7 @@
 <DataTable sortable {headers} {rows}>
   <svelte:fragment slot="cell" let:cell>
     {#if cell.key === "overflow"}
-      <OverflowMenu flipped>
+      <OverflowMenu portalMenu flipped>
         <OverflowMenuItem text="Restart" />
         <OverflowMenuItem
           href="https://cloud.ibm.com/docs/loadbalancer-service"
@@ -33,6 +33,8 @@
         />
         <OverflowMenuItem danger text="Stop" />
       </OverflowMenu>
-    {:else}{cell.value}{/if}
+    {:else}
+      {cell.value}
+    {/if}
   </svelte:fragment>
 </DataTable>

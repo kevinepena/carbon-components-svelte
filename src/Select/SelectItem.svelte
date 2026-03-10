@@ -1,7 +1,12 @@
 <script>
   /**
+   * @generics {Value extends string | number = string | number} Value
+   * @template {string | number} Value
+   */
+
+  /**
    * Specify the option value.
-   * @type {string | number}
+   * @type {Value}
    */
   export let value = "";
 
@@ -35,7 +40,8 @@
   import { getContext, onMount } from "svelte";
 
   const id = `ccs-${Math.random().toString(36)}`;
-  const ctx = getContext("Select") || getContext("TimePickerSelect");
+  const ctx =
+    getContext("carbon:Select") || getContext("carbon:TimePickerSelect");
 
   $: ctx?.setDefaultValue?.(id, value);
 

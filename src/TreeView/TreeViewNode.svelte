@@ -54,7 +54,7 @@
 
 <script>
   /**
-   * @generics {Node extends TreeNode<any> = TreeNode<any>} Node
+   * @generics {Node extends TreeNode<any> = TreeNode<any>, Icon = any} Node,Icon
    * @template {TreeNode<any>} Node
    * @typedef {import('./TreeView.svelte').TreeNode<Id>} TreeNode<Id=(string|number)>
    * @slot {{ node: Node & { expanded: false; leaf: boolean; selected: boolean; } }}
@@ -69,9 +69,9 @@
 
   /**
    * Specify the icon to render.
-   * @type {any}
+   * @type {Icon}
    */
-  export let icon = undefined;
+  export let icon = /** @type {Icon} */ (undefined);
 
   import { afterUpdate, getContext } from "svelte";
 
@@ -85,9 +85,9 @@
     clickNode,
     selectNode,
     focusNode,
-  } = getContext("TreeView");
+  } = getContext("carbon:TreeView");
   const offset = () =>
-    computeTreeLeafDepth(refLabel) + (leaf && icon ? 2 : 2.5);
+    computeTreeLeafDepth(refLabel) - 1 + (leaf && icon ? 2 : 2.5);
 
   afterUpdate(() => {
     if (id === $activeNodeId && prevActiveId !== $activeNodeId) {
@@ -154,8 +154,6 @@
 >
   <div bind:this={refLabel} class:bx--tree-node__label={true}>
     <svelte:component this={icon} class="bx--tree-node__icon" />
-    <slot {node}>
-      {text}
-    </slot>
+    <slot {node}> {text} </slot>
   </div>
 </li>

@@ -37,7 +37,7 @@
     isSideNavMobile,
     isSideNavRail,
     shouldRenderHamburgerMenu,
-  } from "./navStore";
+  } from "./nav-store";
 
   const dispatch = createEventDispatcher();
 
@@ -48,10 +48,15 @@
     dispatch(isOpen ? "open" : "close");
     prevIsOpen = isOpen;
   }
-  $: $isSideNavCollapsed = !isOpen;
+  // Only update the collapsed store after hydration (winWidth is known).
+  // During SSR, defer to Carbon CSS media queries to handle visibility
+  // to avoid a flash when JS sets isOpen after hydration.
+  $: if (winWidth !== undefined) {
+    $isSideNavCollapsed = !isOpen;
+  }
   $: $isSideNavRail = rail;
   $: $isSideNavMobile =
-    winWidth !== undefined && winWidth < expansionBreakpoint;
+    winWidth !== undefined && winWidth < expansionBreakpoint && !fixed;
 
   // Lock body scroll when SideNav is open on mobile (below breakpoint).
   // Only applies to non-fixed, non-rail variants.
@@ -64,7 +69,7 @@
   }
 
   onMount(() => {
-    shouldRenderHamburgerMenu.set(true);
+    shouldRenderHamburgerMenu.set(!fixed);
     return () => {
       shouldRenderHamburgerMenu.set(false);
       isSideNavMobile.set(false);
@@ -86,8 +91,8 @@
       isOpen = false;
     }}
     class:bx--side-nav__overlay={true}
+    class:bx--side-nav__overlay--mobile={$isSideNavMobile}
     class:bx--side-nav__overlay-active={isOpen}
-    style:z-index={isOpen ? 6000 : undefined}
   ></div>
 {/if}
 <nav
@@ -99,9 +104,11 @@
   class:bx--side-nav--expanded={rail && winWidth >= expansionBreakpoint
     ? false
     : isOpen}
-  class:bx--side-nav--collapsed={!isOpen && !rail}
+  class:bx--side-nav--collapsed={winWidth !== undefined && !isOpen && !rail}
   class:bx--side-nav--rail={rail}
-  style:visibility={!isOpen && !rail ? "hidden" : undefined}
+  style:visibility={winWidth !== undefined && !isOpen && !rail
+    ? "hidden"
+    : undefined}
   {...$$restProps}
 >
   <slot />

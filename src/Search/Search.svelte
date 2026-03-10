@@ -1,5 +1,6 @@
 <script>
   /**
+   * @generics {T = any, Icon = any} T,Icon
    * @event {null} expand
    * @event {null} collapse
    * @restProps {input}
@@ -7,9 +8,9 @@
 
   /**
    * Specify the value of the search input.
-   * @type {any}
+   * @type {T}
    */
-  export let value = "";
+  export let value = /** @type {T} */ ("");
 
   /**
    * Specify the size of the search input.
@@ -55,9 +56,9 @@
 
   /**
    * Specify the icon to render.
-   * @type {any}
+   * @type {Icon}
    */
-  export let icon = IconSearch;
+  export let icon = /** @type {Icon} */ (IconSearch);
 
   /** Set an id for the input element */
   export let id = `ccs-${Math.random().toString(36)}`;
@@ -118,9 +119,7 @@
       <svelte:component this={icon} class="bx--search-magnifier-icon" />
     </div>
     <label id="{id}-search" for={id} class:bx--label={true}>
-      <slot name="labelChildren">
-        {labelText}
-      </slot>
+      <slot name="labelChildren"> {labelText} </slot>
     </label>
     <!-- svelte-ignore a11y-autofocus -->
     <input
@@ -156,7 +155,7 @@
       }}
       on:keyup
       on:paste
-    />
+    >
     <button
       type="button"
       aria-label={closeButtonLabelText}

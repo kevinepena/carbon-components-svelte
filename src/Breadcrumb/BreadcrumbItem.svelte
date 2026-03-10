@@ -15,7 +15,7 @@
   import { setContext } from "svelte";
   import Link from "../Link/Link.svelte";
 
-  setContext("BreadcrumbItem", {});
+  setContext("carbon:BreadcrumbItem", {});
 </script>
 
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
@@ -31,9 +31,7 @@
   on:mouseleave
 >
   {#if href}
-    <Link {href} aria-current={$$restProps["aria-current"]}>
-      <slot />
-    </Link>
+    <Link {href} aria-current={$$restProps["aria-current"]}> <slot /> </Link>
   {:else}
     <slot
       props={{

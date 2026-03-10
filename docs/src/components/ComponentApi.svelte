@@ -270,8 +270,8 @@
 <h2 id="forwarded-events">Forwarded events</h2>
 {#if forwarded_events.length > 0}
   <UnorderedList class="my-layout-01-03">
-    {#each forwarded_events as event (event.name)}
-      <ListItem>on:{event.name}</ListItem>
+    {#each forwarded_events as forwarded_event (forwarded_event.name)}
+      <ListItem>on:{forwarded_event.name}</ListItem>
     {/each}
   </UnorderedList>
 {:else}
@@ -293,20 +293,20 @@
       </StructuredListRow>
     </StructuredListHead>
     <StructuredListBody>
-      {#each dispatched_events as event (event.name)}
+      {#each dispatched_events as dispatched_event (dispatched_event.name)}
         <StructuredListRow>
           <StructuredListCell>
-            <strong>on:{event.name}</strong>
+            <strong>on:{dispatched_event.name}</strong>
           </StructuredListCell>
           <StructuredListCell>
             <svelte:component
               this={AsyncPreviewTypeScript}
-              type={/\n/.test(event.detail) ? "multi" : "inline"}
-              code={event.detail}
+              type={/\n/.test(dispatched_event.detail) ? "multi" : "inline"}
+              code={dispatched_event.detail}
             />
           </StructuredListCell>
           <StructuredListCell>
-            {event.description ?? ""}
+            {dispatched_event.description ?? ""}
           </StructuredListCell>
         </StructuredListRow>
       {/each}
@@ -327,8 +327,13 @@
     {#if component.rest_props.type === "Element"}
       <code>{component.rest_props.name}</code>
       element.
-    {:else}<code>{component.rest_props.name}</code> component.{/if}
-  {:else}This component does not spread <code>restProps</code>{/if}
+    {:else}
+      <code>{component.rest_props.name}</code>
+      component.
+    {/if}
+  {:else}
+    This component does not spread <code>restProps</code>
+  {/if}
 </div>
 
 <style>
@@ -360,13 +365,5 @@
 
   code {
     word-break: break-word;
-  }
-
-  :global(
-    .cell .bx--snippet--inline code,
-    .cell .bx--snippet--single pre,
-    .bx--snippet--inline code
-  ) {
-    white-space: pre-wrap !important;
   }
 </style>

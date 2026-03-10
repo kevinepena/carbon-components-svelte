@@ -23,6 +23,8 @@
   export let warnText = "";
   export let helperText = "";
   export let hideLabel = false;
+  export let portalMenu = false;
+  export let pattern: string | undefined = undefined;
   export let onchange: ((event: CustomEvent) => void) | undefined = undefined;
 </script>
 
@@ -38,6 +40,7 @@
   {short}
   {light}
   {flatpickrProps}
+  {portalMenu}
   on:change={onchange}
 >
   <DatePickerInput
@@ -50,5 +53,6 @@
     {warnText}
     {helperText}
     {hideLabel}
+    {pattern}
   />
 </DatePicker>

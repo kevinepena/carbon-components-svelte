@@ -1,6 +1,8 @@
 import { render, screen } from "@testing-library/svelte";
 import type TreeViewComponent from "carbon-components-svelte/TreeView/TreeView.svelte";
 import type { TreeNode } from "carbon-components-svelte/TreeView/TreeView.svelte";
+import type TreeViewNodeComponent from "carbon-components-svelte/TreeView/TreeViewNode.svelte";
+import type TreeViewNodeListComponent from "carbon-components-svelte/TreeView/TreeViewNodeList.svelte";
 import type {
   ComponentEvents,
   ComponentProps,
@@ -137,7 +139,8 @@ describe.each(testCases)("$name", ({ component }) => {
 
     expect(toggleButton).toBeInTheDocument();
 
-    await user.click(toggleButton as HTMLElement);
+    expect.assert(toggleButton instanceof HTMLElement);
+    await user.click(toggleButton);
 
     expect(consoleLog).toHaveBeenCalledWith(
       "toggle",
@@ -343,6 +346,64 @@ describe("TreeView Props", () => {
     const node2 = screen.getByRole("treeitem", { name: /Node 2/ });
     expect(node2).toHaveAttribute("aria-current", "true");
     expect(node2).toHaveClass("bx--tree-node--active");
+  });
+
+  describe("active node label indentation regression", () => {
+    it("applies correct offset to root-level leaf node label (prevents active indicator clipping)", () => {
+      render(TreeViewProps, { activeId: 1 });
+
+      const activeNode = screen.getByRole("treeitem", { name: /Node 2/ });
+      const label = activeNode.querySelector(".bx--tree-node__label");
+      expect.assert(label instanceof HTMLElement);
+      expect(label.style.paddingLeft).toBe("2.5rem");
+      expect(label.style.marginLeft).toBe("-2.5rem");
+    });
+
+    it("applies correct offset to nested leaf node label when expanded", () => {
+      render(TreeViewProps, {
+        activeId: 5,
+        expandedIds: [1],
+        nodes: [
+          { id: 0, text: "Node 1" },
+          {
+            id: 1,
+            text: "Node 2",
+            nodes: [
+              { id: 2, text: "Node 2a" },
+              { id: 5, text: "Node 2b" },
+            ],
+          },
+        ],
+      });
+
+      const activeNode = screen.getByRole("treeitem", { current: true });
+      const label = activeNode.querySelector(".bx--tree-node__label");
+      expect.assert(label instanceof HTMLElement);
+      // Nested at depth 2: offset = (2 - 1) + 2.5 = 3.5rem
+      expect(label.style.paddingLeft).toBe("3.5rem");
+      expect(label.style.marginLeft).toBe("-3.5rem");
+    });
+
+    it("applies correct offset to root-level parent node label", () => {
+      render(TreeViewProps, {
+        activeId: 1,
+        nodes: [
+          { id: 0, text: "Node 1" },
+          {
+            id: 1,
+            text: "Node 2",
+            nodes: [{ id: 2, text: "Node 2a" }],
+          },
+        ],
+      });
+
+      const activeNode = screen.getByRole("treeitem", { name: /Node 2/ });
+      const label = activeNode.querySelector(".bx--tree-node__label");
+      expect.assert(label instanceof HTMLElement);
+      // Root parent: offset = (1 - 1) + 1 = 1rem
+      expect(label.style.paddingLeft).toBe("1rem");
+      expect(label.style.marginLeft).toBe("-1rem");
+    });
   });
 
   it("handles multiple selectedIds", () => {
@@ -801,7 +862,9 @@ describe("TreeView Generics", () => {
 
 describe("TreeView autoCollapse", () => {
   const getToggleButton = (node: HTMLElement) => {
-    return node.querySelector(".bx--tree-parent-node__toggle") as HTMLElement;
+    const button = node.querySelector(".bx--tree-parent-node__toggle");
+    expect.assert(button instanceof HTMLElement);
+    return button;
   };
 
   const getAllExpandedItems = () => {
@@ -907,5 +970,43 @@ describe("TreeView autoCollapse", () => {
     await rerender({ activeId: "item3" });
     expect(folder2).toHaveAttribute("aria-expanded", "true");
     expect(folder1).toHaveAttribute("aria-expanded", "false");
+  });
+
+  describe("TreeViewNode Generics", () => {
+    it("should support custom Icon types with generics", () => {
+      type CustomIcon = new (...args: unknown[]) => unknown;
+
+      type ComponentType = TreeViewNodeComponent<TreeNode, CustomIcon>;
+      type Props = ComponentProps<ComponentType>;
+
+      expectTypeOf<Props["icon"]>().toEqualTypeOf<CustomIcon | undefined>();
+    });
+
+    it("should default Icon to any when not specified", () => {
+      type ComponentType = TreeViewNodeComponent<TreeNode>;
+      type Props = ComponentProps<ComponentType>;
+
+      // biome-ignore lint/suspicious/noExplicitAny: Testing default any type
+      expectTypeOf<Props["icon"]>().toEqualTypeOf<any>();
+    });
+  });
+
+  describe("TreeViewNodeList Generics", () => {
+    it("should support custom Icon types with generics", () => {
+      type CustomIcon = new (...args: unknown[]) => unknown;
+
+      type ComponentType = TreeViewNodeListComponent<string, CustomIcon>;
+      type Props = ComponentProps<ComponentType>;
+
+      expectTypeOf<Props["icon"]>().toEqualTypeOf<CustomIcon | undefined>();
+    });
+
+    it("should default Icon to any when not specified", () => {
+      type ComponentType = TreeViewNodeListComponent<string>;
+      type Props = ComponentProps<ComponentType>;
+
+      // biome-ignore lint/suspicious/noExplicitAny: Testing default any type
+      expectTypeOf<Props["icon"]>().toEqualTypeOf<any>();
+    });
   });
 });

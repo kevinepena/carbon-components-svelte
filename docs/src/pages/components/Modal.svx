@@ -1,12 +1,19 @@
-<script>
-  import Preview from "../../components/Preview.svelte";
-</script>
-
-The `Modal` component provides a focused dialog for user interactions, confirmations, or data entry. It supports various sizes, states, and customization options to create accessible and user-friendly modal experiences.
+Modals provide a focused dialog for user interactions, confirmations, or data entry. They support various sizes, states, and customization options to create accessible and user-friendly modal experiences.
 
 **Modal vs ComposedModal**
 
-`Modal` is an all-in-one component configured through props, making it ideal for standard modal dialogs. For more complex layouts or fine-grained control, use [ComposedModal](/components/ComposedModal) instead.
+The modal is an all-in-one component configured through props, making it ideal for standard modal dialogs. For more complex layouts or fine-grained control, use [ComposedModal](/components/ComposedModal) instead.
+
+**Focus behavior**
+
+When the modal opens, focus is set using the following priority:
+
+1. The element matching `selectorPrimaryFocus` (default: `[data-modal-primary-focus]`)
+2. The first input, textarea, or select (for transactional modals with form fields)
+3. The primary action button (for confirmation modals), or the cancel button (for destructive modals with `danger={true}`)
+4. The close button (for passive modals or modals without a primary button)
+
+After closing the modal, focus is returned to the element that triggered the modal.
 
 ## Default
 
@@ -18,13 +25,21 @@ Create a basic modal dialog with primary and secondary actions. This variant is 
 
 ## With Portal
 
-Wrap `Modal` in a `Portal` to escape parent containers with `overflow: hidden` or z-index stacking contexts. This ensures the modal appears above all content and isn't clipped by parent boundaries.
+Wrap the modal in a portal to escape parent containers with `overflow: hidden` or z-index stacking contexts. This ensures the modal appears above all content and isn't clipped by parent boundaries.
 
 <FileSource src="/framed/Portal/ModalPortal" />
 
+## Modal with dropdowns
+
+When components with menus are used inside a modal, such as a combo box, dropdown, multi-select, date picker, or overflow menu, these components automatically render their menus in a floating portal when inside a modal, so menus are positioned relative to their trigger and are not clipped by the modal's overflow or z-index stacking.
+
+Set `portalMenu={false}` on these components to opt out. In this example, the modal itself is wrapped in a portal.
+
+<FileSource src="/framed/Modal/ModalWithDropdowns" />
+
 ## Custom focus
 
-Control which element receives focus when the modal opens. Use `selectorPrimaryFocus` to specify the target element using CSS selectors.
+Use `selectorPrimaryFocus` to override the default and target a specific element when the automatic first-input focus is not desired.
 
 <FileSource src="/framed/Modal/ModalCustomFocus" />
 
@@ -32,11 +47,13 @@ Control which element receives focus when the modal opens. Use `selectorPrimaryF
 
 Display critical actions or destructive operations with the danger variant. This style emphasizes the severity of the action.
 
+By default, the cancel button receives focus instead of the critical button to prevent accidental destructive actions.
+
 <FileSource src="/framed/Modal/DangerModal" />
 
 ## Passive modal
 
-Create a non-interactive modal for displaying information. This variant lacks action buttons and focuses on content presentation.
+Create a non-interactive modal for displaying information. This variant lacks action buttons and focuses on content presentation. Since there is no primary button, the close button will receive focus when the modal opens.
 
 <FileSource src="/framed/Modal/PassiveModal" />
 

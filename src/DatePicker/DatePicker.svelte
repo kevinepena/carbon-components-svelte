@@ -56,6 +56,13 @@
   /** Set to `true` to enable the light variant */
   export let light = false;
 
+  /**
+   * Set to `true` to render the calendar in a portal to prevent clipping.
+   * When inside a Modal, defaults to `true` unless explicitly set to `false`.
+   * @type {boolean | undefined}
+   */
+  export let portalMenu = undefined;
+
   /** Set an id for the date picker element */
   export let id = `ccs-${Math.random().toString(36)}`;
 
@@ -69,6 +76,7 @@
   import {
     afterUpdate,
     createEventDispatcher,
+    getContext,
     onMount,
     setContext,
   } from "svelte";
@@ -76,6 +84,11 @@
   import { createCalendar } from "./createCalendar";
 
   const dispatch = createEventDispatcher();
+  const insideModal = getContext("carbon:Modal");
+
+  $: effectivePortalMenu =
+    portalMenu !== undefined ? portalMenu : !!insideModal;
+
   const inputs = writable([]);
   /**
    * @type {import("svelte/store").Readable<ReadonlyArray<string>>}
@@ -98,6 +111,7 @@
    */
   const inputValueTo = writable(valueTo);
   const mode = writable(datePickerType);
+  const dateFormatStore = writable(dateFormat);
   /**
    * @type {import("svelte/store").Readable<boolean>}
    */
@@ -186,13 +200,14 @@
     ).focus();
   };
 
-  setContext("DatePicker", {
+  setContext("carbon:DatePicker", {
     range,
     inputValue,
     inputValueFrom,
     inputValueTo,
     inputIds,
     hasCalendar,
+    dateFormat: dateFormatStore,
     add,
     declareRef,
     updateValue,
@@ -207,8 +222,8 @@
       calendar.set("maxDate", maxDate);
       calendar.set("locale", locale);
       calendar.set("dateFormat", dateFormat);
-      for (const [_option, value] of Object.entries(flatpickrProps)) {
-        calendar.set(options, value);
+      for (const [option, value] of Object.entries(flatpickrProps)) {
+        calendar.set(option, value);
       }
       return;
     }
@@ -216,7 +231,9 @@
     calendar = await createCalendar({
       options: {
         ...options,
-        appendTo: datePickerRef,
+        ...(effectivePortalMenu
+          ? { static: false }
+          : { appendTo: datePickerRef }),
         defaultDate: $inputValue,
         mode: $mode,
       },
@@ -268,12 +285,16 @@
         if ($inputValueFrom !== "") {
           inputRef.value = $inputValueFrom;
         }
+        if ($inputValueTo !== "") {
+          inputRefTo.value = $inputValueTo;
+        }
       } else {
         calendar.setDate($inputValue);
       }
     }
   });
 
+  $: dateFormatStore.set(dateFormat);
   $: inputValue.set(value);
   $: value = $inputValue;
   $: inputValueFrom.set(valueFrom);

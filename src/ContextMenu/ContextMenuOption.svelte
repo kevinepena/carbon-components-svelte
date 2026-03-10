@@ -1,5 +1,9 @@
 <script>
   /**
+   * @generics {Icon = any} Icon
+   */
+
+  /**
    * Specify the kind of option.
    * @type {"default" | "danger"}
    */
@@ -14,9 +18,9 @@
   /**
    * Specify the icon to render.
    * Icon is rendered to the left of the label text.
-   * @type {any}
+   * @type {Icon}
    */
-  export let icon = undefined;
+  export let icon = /** @type {Icon} */ (undefined);
 
   /**
    * Specify the label text.
@@ -66,9 +70,9 @@
   import ContextMenu from "./ContextMenu.svelte";
 
   const dispatch = createEventDispatcher();
-  const ctx = getContext("ContextMenu");
-  const ctxGroup = getContext("ContextMenuGroup");
-  const ctxRadioGroup = getContext("ContextMenuRadioGroup");
+  const ctx = getContext("carbon:ContextMenu");
+  const ctxGroup = getContext("carbon:ContextMenuGroup");
+  const ctxRadioGroup = getContext("carbon:ContextMenuRadioGroup");
 
   // "moderate-01" duration (ms) from Carbon motion recommended for small expansion, short distance movements
   const moderate01 = 150;
@@ -374,9 +378,7 @@
     >
       {#if indented}
         <div class:bx--menu-option__icon={true}>
-          <slot name="icon">
-            <svelte:component this={icon} />
-          </slot>
+          <slot name="icon"> <svelte:component this={icon} /> </slot>
         </div>
       {/if}
       <span class:bx--menu-option__label={true} title={labelText}>
@@ -400,9 +402,7 @@
     >
       {#if indented}
         <div class:bx--menu-option__icon={true}>
-          <slot name="icon">
-            <svelte:component this={icon} />
-          </slot>
+          <slot name="icon"> <svelte:component this={icon} /> </slot>
         </div>
       {/if}
       <span class:bx--menu-option__label={true} title={labelText}>

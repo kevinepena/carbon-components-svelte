@@ -4,10 +4,9 @@ components: ["NumberInput", "NumberInputSkeleton"]
 
 <script>
   import { NumberInput, NumberInputSkeleton } from "carbon-components-svelte";
-  import Preview from "../../components/Preview.svelte";
 </script>
 
-The `NumberInput` component provides a controlled input for numerical values. It supports validation, step values, and various states to ensure accurate data entry.
+Number inputs provide a controlled input for numerical values. They support validation, step values, and various states to ensure accurate data entry.
 
 ## Default
 
@@ -29,7 +28,7 @@ Add descriptive text below the input using the `helperText` prop. This helps use
 
 ## Minimum and maximum values
 
-Constrain input values using `min` and `max` props. This example limits values between 4 and 20.
+Constrain input values using `min` and `max` props. When the value falls outside the specified range, the input automatically shows an invalid visual state. Provide `invalidText` to display an error message.
 
 <NumberInput min="{4}" max="{20}" value="{4}" invalidText="Number must be between 4 and 20." helperText="Clusters provisioned in your region" labelText="Clusters (4 min, 20 max)" />
 
@@ -39,11 +38,75 @@ Control the increment/decrement step size using the `step` prop. This example us
 
 <NumberInput value="{1}" helperText="Step of 0.1" step={0.1} labelText="Clusters" />
 
+## Step start value
+
+Configure a starting point for stepping when the input is empty or zero using `stepStartValue`. When the user clicks increment or decrement, the value jumps directly to `stepStartValue` instead of stepping from zero.
+
+This is useful when zero is not within the `min`/`max` range, or when there is a more sensible default (e.g., the current year when asking for a year). Combined with `allowEmpty`, it ensures the user must interact with the input before submitting a value.
+
+<NumberInput stepStartValue={2026} allowEmpty min={2026} max={2100} labelText="Year" />
+
 ## Preserve decimal input
 
 Preserve decimal input formatting like "1.0", "2.00", or "3." by setting `allowDecimal` to `true`. This uses `type="text"` with `inputmode="decimal"` instead of `type="number"`, allowing trailing zeros and decimal points to be preserved while typing. This is useful for financial data or precise decimal entry.
 
 <FileSource src="/framed/NumberInput/NumberInputDecimal" />
+
+## Locale formatting
+
+Format numbers according to a locale using the `locale` prop with a BCP 47 language tag. The display value is formatted on blur using `Intl.NumberFormat`. When `locale` is set, the input uses `type="text"` with `inputmode="decimal"`.
+
+<NumberInput locale="de-DE" value={1234.5} labelText="Amount (German)" />
+
+## Locale with format options
+
+Combine `locale` with `formatOptions` for additional formatting control like decimal precision.
+
+<NumberInput locale="en-US" formatOptions={{ minimumFractionDigits: 2, maximumFractionDigits: 2 }} value={1234.5} labelText="Price" />
+
+## Custom validation
+
+Use the `validate` prop to provide custom validation logic. The function receives the raw input string and optional locale. Return `false` to mark invalid, `true` to force valid (overriding auto bounds checks), or `undefined` to use built-in validation.
+
+<NumberInput validate={(raw) => { const num = Number(raw); return Number.isNaN(num) ? undefined : num % 2 === 0; }} invalidText="Must be an even number" labelText="Even number" value={0} />
+
+## Blur event
+
+Use `on:blur` to listen for when the input loses focus. The event detail includes the current parsed `value` and the original `FocusEvent`.
+
+<NumberInput
+  on:blur={(e) => {
+    console.log(e.detail.value); // number | null
+    console.log(e.detail.event); // FocusEvent
+  }}
+/>
+
+## Stepper click event
+
+Use `on:click:stepper` to listen for stepper button clicks. The event detail includes the updated `value` and the `direction` (`"up"` or `"down"`). This event only fires on button clicks, not arrow key presses.
+
+<NumberInput
+  on:click:stepper={(e) => {
+    console.log(e.detail.value); // number
+    console.log(e.detail.direction); // "up" | "down"
+  }}
+/>
+
+## Stepper blur event
+
+Use `on:blur:stepper` to listen for when a stepper button loses focus. The event detail includes the current `value`, the `direction`, and the original `FocusEvent`.
+
+<NumberInput
+  on:blur:stepper={(e) => {
+    console.log(e.detail.value); // number | null
+    console.log(e.detail.direction); // "up" | "down"
+    console.log(e.detail.event); // FocusEvent
+  }}
+/>
+
+## Stepper events
+
+<FileSource src="/framed/NumberInput/NumberInputStepperEvents" />
 
 ## Hidden label
 
@@ -99,9 +162,15 @@ Hide the increment/decrement controls by setting `hideSteppers` to `true`. This 
 
 <NumberInput hideSteppers labelText="Clusters" value={0} />
 
+## Disable wheel
+
+Prevent the scroll wheel from changing the input value by setting `disableWheel` to `true`. This is useful in forms where accidental scroll changes are undesirable.
+
+<NumberInput disableWheel labelText="Clusters" value={0} />
+
 ## Skeleton
 
-Show a loading state using the `NumberInputSkeleton` component. This is useful while data is being fetched.
+Show a loading state using the number input skeleton. This is useful while data is being fetched.
 
 <NumberInputSkeleton />
 

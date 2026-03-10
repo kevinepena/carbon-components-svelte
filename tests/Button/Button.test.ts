@@ -1,4 +1,6 @@
-import { render, screen } from "@testing-library/svelte";
+import { fireEvent, render, screen } from "@testing-library/svelte";
+import type ButtonComponent from "carbon-components-svelte/Button/Button.svelte";
+import type { ComponentProps } from "svelte";
 import { user } from "../setup-tests";
 import Button from "./Button.test.svelte";
 
@@ -107,6 +109,54 @@ describe("Button", () => {
     expect(icon).toBeInTheDocument();
   });
 
+  it("should set pointer-events to none on assistive text for icon-only buttons", () => {
+    render(Button);
+
+    const btnA = screen.getByTestId("btn-icon-a");
+    const assistiveText = btnA.querySelector(".bx--assistive-text");
+    assert(assistiveText instanceof HTMLElement);
+    expect(assistiveText.style.pointerEvents).toBe("none");
+  });
+
+  it("should hide other icon-only button tooltips on mouseenter", async () => {
+    render(Button);
+
+    const btnA = screen.getByTestId("btn-icon-a");
+    const btnB = screen.getByTestId("btn-icon-b");
+    const btnC = screen.getByTestId("btn-icon-c");
+
+    // Initially no button should have bx--tooltip--hidden.
+    expect(btnA).not.toHaveClass("bx--tooltip--hidden");
+    expect(btnB).not.toHaveClass("bx--tooltip--hidden");
+    expect(btnC).not.toHaveClass("bx--tooltip--hidden");
+
+    // Hover button A: others should get bx--tooltip--hidden.
+    await fireEvent.mouseEnter(btnA);
+    expect(btnA).not.toHaveClass("bx--tooltip--hidden");
+    expect(btnB).toHaveClass("bx--tooltip--hidden");
+    expect(btnC).toHaveClass("bx--tooltip--hidden");
+
+    // Hover button B: A and C should get bx--tooltip--hidden.
+    await fireEvent.mouseEnter(btnB);
+    expect(btnA).toHaveClass("bx--tooltip--hidden");
+    expect(btnB).not.toHaveClass("bx--tooltip--hidden");
+    expect(btnC).toHaveClass("bx--tooltip--hidden");
+  });
+
+  it("should clear tooltip hidden state on mouseleave", async () => {
+    render(Button);
+
+    const btnA = screen.getByTestId("btn-icon-a");
+    const btnB = screen.getByTestId("btn-icon-b");
+
+    await fireEvent.mouseEnter(btnA);
+    expect(btnB).toHaveClass("bx--tooltip--hidden");
+
+    await fireEvent.mouseLeave(btnA);
+    expect(btnA).not.toHaveClass("bx--tooltip--hidden");
+    expect(btnB).not.toHaveClass("bx--tooltip--hidden");
+  });
+
   it("should hide tooltip but keep accessibility when hideTooltip is true", () => {
     render(Button);
 
@@ -123,5 +173,24 @@ describe("Button", () => {
     const assistiveText = iconButton.querySelector(".bx--assistive-text");
     assert(assistiveText);
     expect(assistiveText).toHaveTextContent("Add item");
+  });
+
+  describe("Generics", () => {
+    it("should support custom Icon types with generics", () => {
+      type CustomIcon = new (...args: unknown[]) => unknown;
+
+      type ComponentType = ButtonComponent<CustomIcon>;
+      type Props = ComponentProps<ComponentType>;
+
+      expectTypeOf<Props["icon"]>().toEqualTypeOf<CustomIcon | undefined>();
+    });
+
+    it("should default to any type when generic is not specified", () => {
+      type ComponentType = ButtonComponent;
+      type Props = ComponentProps<ComponentType>;
+
+      // biome-ignore lint/suspicious/noExplicitAny: Testing default any type
+      expectTypeOf<Props["icon"]>().toEqualTypeOf<any>();
+    });
   });
 });

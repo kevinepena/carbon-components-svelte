@@ -3,10 +3,16 @@
  * Compares arrays of row objects by first checking IDs (fast path),
  * then falling back to deep object comparison to handle nested structures.
  */
-export function rowsEqual<Row extends Record<string, any>>(
-  a: ReadonlyArray<Row> | null,
-  b: ReadonlyArray<Row> | null,
+export function rowsEqual<T>(
+  a: ReadonlyArray<T> | null,
+  b: ReadonlyArray<T> | null,
 ): boolean;
+
+/**
+ * Returns true if the element's class list indicates the click target
+ * is an overflow menu, checkbox, or radio button (row click should be ignored).
+ */
+export function shouldIgnoreRowClick(target: EventTarget | null): boolean;
 
 /**
  * Resolves a nested property path in an object.

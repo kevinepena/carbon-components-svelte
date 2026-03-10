@@ -1,5 +1,6 @@
 <script>
   /**
+   * @generics {Id = any} Id
    * @event {null} cancel
    */
 
@@ -19,7 +20,7 @@
   /**
    * Specify the selected IDs for standalone usage.
    * This is unnecessary if using this component with `DataTable`.
-   * @type {ReadonlyArray<any>}
+   * @type {ReadonlyArray<Id>}
    */
   export let selectedIds = [];
 
@@ -37,7 +38,7 @@
 
   const dispatch = createEventDispatcher();
 
-  const ctx = getContext("DataTable");
+  const ctx = getContext("carbon:DataTable");
 
   function cancel() {
     const shouldContinue = dispatch("cancel", null, { cancelable: true });
@@ -73,7 +74,7 @@
 
   let overflowVisible = false;
 
-  const ctxToolbar = getContext("Toolbar");
+  const ctxToolbar = getContext("carbon:Toolbar");
   let unsubscribeOverflow;
 
   if (ctxToolbar?.overflowVisible) {

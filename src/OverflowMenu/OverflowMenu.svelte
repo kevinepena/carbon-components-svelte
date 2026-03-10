@@ -1,5 +1,6 @@
 <script>
   /**
+   * @generics {Icon = any} Icon
    * @event close
    * @property {number} [index]
    * @property {string} [text]
@@ -34,9 +35,9 @@
 
   /**
    * Specify the icon to render.
-   * @type {any}
+   * @type {Icon}
    */
-  export let icon = OverflowMenuVertical;
+  export let icon = /** @type {Icon} */ (OverflowMenuVertical);
 
   /**
    * Specify the icon class.
@@ -56,6 +57,14 @@
   /** Obtain a reference to the overflow menu element */
   export let menuRef = null;
 
+  /**
+   * Set to `true` to render the menu in a portal,
+   * allowing it to escape containers with `overflow: hidden`.
+   * When inside a Modal, defaults to `true` unless explicitly set to `false`.
+   * @type {boolean | undefined}
+   */
+  export let portalMenu = undefined;
+
   import {
     afterUpdate,
     createEventDispatcher,
@@ -65,8 +74,14 @@
   import { writable } from "svelte/store";
   import OverflowMenuHorizontal from "../icons/OverflowMenuHorizontal.svelte";
   import OverflowMenuVertical from "../icons/OverflowMenuVertical.svelte";
+  import FloatingPortal from "../Portal/FloatingPortal.svelte";
 
-  const ctxBreadcrumbItem = getContext("BreadcrumbItem");
+  const ctxBreadcrumbItem = getContext("carbon:BreadcrumbItem");
+  const insideModal = getContext("carbon:Modal");
+
+  $: effectivePortalMenu =
+    portalMenu !== undefined ? portalMenu : !!insideModal;
+
   const dispatch = createEventDispatcher();
   /**
    * @type {import("svelte/store").Writable<ReadonlyArray<{ id: string; text: string; primaryFocus: boolean; disabled: boolean; index: number }>>}
@@ -144,7 +159,7 @@
     currentIndex.set(index);
   };
 
-  setContext("OverflowMenu", {
+  setContext("carbon:OverflowMenu", {
     focusedId,
     items,
     add,
@@ -160,24 +175,28 @@
       buttonWidth = width;
 
       if (!onMountAfterUpdate && $currentIndex < 0) {
-        menuRef.focus();
+        menuRef?.focus();
       }
 
-      if (flipped) {
-        menuRef.style.left = "auto";
-        menuRef.style.right = 0;
-      }
+      if (!effectivePortalMenu) {
+        if (flipped) {
+          menuRef.style.left = "auto";
+          menuRef.style.right = 0;
+        }
 
-      if (direction === "top") {
-        menuRef.style.top = "auto";
-        menuRef.style.bottom = `${height}px`;
-      } else if (direction === "bottom") {
-        menuRef.style.top = `${height}px`;
-      }
+        if (direction === "top") {
+          menuRef.style.top = "auto";
+          menuRef.style.bottom = `${height}px`;
+        } else if (direction === "bottom") {
+          menuRef.style.top = `${height}px`;
+        }
 
-      if (ctxBreadcrumbItem) {
-        menuRef.style.top = `${height + 10}px`;
-        menuRef.style.left = `${-11}px`;
+        if (ctxBreadcrumbItem) {
+          menuRef.style.top = `${height + 10}px`;
+          menuRef.style.left = `${-11}px`;
+        }
+      } else if (flipped && menuRef) {
+        menuRef.style.marginLeft = `${width - menuRef.offsetWidth}px`;
       }
     }
 
@@ -204,6 +223,7 @@
 <svelte:window
   on:click={({ target }) => {
     if (buttonRef && buttonRef.contains(target)) return;
+    if (effectivePortalMenu && menuRef && menuRef.contains(target)) return;
     if (menuRef && !menuRef.contains(target)) {
       const shouldContinue = dispatch("close", null, { cancelable: true });
       if (shouldContinue) {
@@ -267,7 +287,7 @@
       class="bx--overflow-menu__icon {iconClass}"
     />
   </slot>
-  {#if open}
+  {#if open && !effectivePortalMenu}
     <!-- svelte-ignore a11y-no-noninteractive-element-to-interactive-role -->
     <ul
       bind:this={menuRef}
@@ -290,6 +310,48 @@
     </ul>
   {/if}
 </button>
+
+{#if effectivePortalMenu}
+  <FloatingPortal
+    anchor={buttonRef}
+    {direction}
+    {open}
+    let:direction={portalDirection}
+  >
+    <!-- svelte-ignore a11y-no-noninteractive-element-to-interactive-role -->
+    <ul
+      bind:this={menuRef}
+      role="menu"
+      tabindex="-1"
+      id={menuId}
+      aria-label={ariaLabel}
+      data-floating-menu-direction={portalDirection}
+      class:bx--overflow-menu-options={true}
+      class:bx--overflow-menu--flip={flipped}
+      class:bx--overflow-menu-options--open={open}
+      class:bx--overflow-menu-options--light={light}
+      class:bx--overflow-menu-options--sm={size === "sm"}
+      class:bx--overflow-menu-options--xl={size === "xl"}
+      class:bx--breadcrumb-menu-options={!!ctxBreadcrumbItem}
+      class={menuOptionsClass}
+      style="position: relative; top: auto; left: auto; --overflow-menu-options-after-width: {overflowMenuOptionsAfterWidth}"
+      on:keydown={(e) => {
+        if (["ArrowDown", "ArrowLeft", "ArrowRight", "ArrowUp"].includes(e.key)) {
+          e.preventDefault();
+        } else if (e.key === "Escape") {
+          e.stopPropagation();
+          const shouldContinue = dispatch("close", null, { cancelable: true });
+          if (shouldContinue) {
+            open = false;
+            buttonRef.focus();
+          }
+        }
+      }}
+    >
+      <slot />
+    </ul>
+  </FloatingPortal>
+{/if}
 
 <style>
   .bx--overflow-menu-options:after {

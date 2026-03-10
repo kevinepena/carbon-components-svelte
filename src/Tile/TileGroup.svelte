@@ -80,7 +80,7 @@
     dispatch("select", value);
   };
 
-  setContext("TileGroup", {
+  setContext("carbon:TileGroup", {
     selectedValue,
     groupName: groupNameReadonly,
     groupRequired: groupRequiredReadonly,
@@ -100,7 +100,5 @@
       <slot name="legendChildren">{legendText}</slot>
     </legend>
   {/if}
-  <div>
-    <slot />
-  </div>
+  <div><slot /></div>
 </fieldset>

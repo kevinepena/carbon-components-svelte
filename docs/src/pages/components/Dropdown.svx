@@ -3,26 +3,34 @@ components: ["Dropdown", "DropdownSkeleton"]
 ---
 
 <script>
-  import { Dropdown, DropdownSkeleton, InlineNotification } from "carbon-components-svelte";
-  import Preview from "../../components/Preview.svelte";
+  import { Dropdown, DropdownSkeleton } from "carbon-components-svelte";
 </script>
 
-The `Dropdown` component provides a select input with a dropdown menu. It supports
+Dropdowns provide a select input with a dropdown menu. They support
 various states, sizes, and customization options. Each item in the dropdown must
 have a unique `id` property for proper functionality.
 
-<InlineNotification svx-ignore lowContrast title="Note:" kind="info" hideCloseButton>
-  <div class="body-short-01">Every <code>items</code> object must have a unique "id" property.</div>
-</InlineNotification>
+> [!NOTE]
+> Every `items` object must have a unique "id" property.
 
 ## Default
 
-Use the `Dropdown` component to create a select input with a dropdown menu. Each item
+Use the dropdown to create a select input with a dropdown menu. Each item
 must have a unique `id` property.
 
 <Dropdown labelText="Contact" selectedId="0" items="{[{id: "0", text: "Slack"},
   {id: "1", text: "Email"},
   {id: "2", text: "Fax"}]}" />
+
+## Custom label
+
+Use the `labelChildren` slot to provide custom label content instead of using the `labelText` prop.
+
+<Dropdown selectedId="0" items="{[{id: "0", text: "Slack"},
+  {id: "1", text: "Email"},
+  {id: "2", text: "Fax"}]}">
+  <strong slot="labelChildren">Custom label</strong>
+</Dropdown>
 
 ## Custom slot
 
@@ -75,6 +83,14 @@ to `true`.
 <Dropdown light labelText="Contact" selectedId="0" items="{[{id: "0", text: "Slack"},
   {id: "1", text: "Email"},
   {id: "2", text: "Fax"}]}" />
+
+## Portal menu
+
+Set `portalMenu` to `true` to render the dropdown menu in a floating portal. This prevents the menu from being clipped by parent containers with `overflow: hidden` or z-index stacking contexts. The example below shows a container with hidden overflow. Without `portalMenu`, the dropdown would be clipped.
+
+When inside a [Modal](/components/Modal#modal-with-dropdowns), `portalMenu` defaults to `true` unless explicitly set to `false`.
+
+<FileSource src="/framed/Dropdown/DropdownPortalMenu" />
 
 ## Inline variant
 
@@ -158,7 +174,7 @@ Display a non-editable value by setting `readonly` to `true`.
 
 Virtualization is a technique that allows only the items currently visible in the viewport to be rendered in the DOM, improving performance for large lists.
 
-By default, the `Dropdown` component will virtualize lists with more than 100 items.
+By default, the dropdown will virtualize lists with more than 100 items.
 
 In the example below, 10,000 items are provided to the dropdown but only 11 items (8 visible items + 3 overscan items) are rendered in the DOM.
 
@@ -172,11 +188,8 @@ Overscanning is the process of rendering extra items above and below the viewpor
 
 Specify a custom value for `overscan` to control how many extra items are rendered above/below the viewport for smoother scrolling.
 
-<InlineNotification svx-ignore lowContrast title="Note:" kind="info" hideCloseButton>
-  <div class="body-short-01">
-    During very fast scrolling, higher overscan values may cause more flickering due to increased DOM updates. For fast scrolling scenarios, use a lower overscan value.
-  </div>
-</InlineNotification>
+> [!NOTE]
+> During very fast scrolling, higher overscan values may cause more flickering due to increased DOM updates. For fast scrolling scenarios, use a lower overscan value.
 
 <FileSource src="/framed/Dropdown/VirtualizeOverscan" />
 
@@ -196,7 +209,7 @@ The default item height for virtualization is 40 pixels. When using custom slots
 
 ## Skeleton
 
-Display a loading state using the `DropdownSkeleton` component. This provides
+Display a loading state using the dropdown skeleton. This provides
 visual feedback while the dropdown content is being loaded.
 
 <DropdownSkeleton />

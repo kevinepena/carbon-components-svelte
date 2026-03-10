@@ -4,7 +4,53 @@ import {
   getDisplayedRows,
   resolvePath,
   rowsEqual,
+  shouldIgnoreRowClick,
 } from "../../src/DataTable/data-table-utils.js";
+
+describe("shouldIgnoreRowClick", () => {
+  it("returns true for element with bx--checkbox class", () => {
+    const el = document.createElement("div");
+    el.className = "bx--checkbox";
+    expect(shouldIgnoreRowClick(el)).toBe(true);
+  });
+
+  it("returns true for element with bx--radio-button class", () => {
+    const el = document.createElement("div");
+    el.className = "bx--radio-button-wrapper";
+    expect(shouldIgnoreRowClick(el)).toBe(true);
+  });
+
+  it("returns true for element with bx--overflow-menu class", () => {
+    const el = document.createElement("div");
+    el.className = "bx--overflow-menu";
+    expect(shouldIgnoreRowClick(el)).toBe(true);
+  });
+
+  it("returns true when element has matching class among multiple classes", () => {
+    const el = document.createElement("div");
+    el.className = "bx--data-table-cell bx--checkbox bx--form-item";
+    expect(shouldIgnoreRowClick(el)).toBe(true);
+  });
+
+  it("returns false for element without matching classes", () => {
+    const el = document.createElement("div");
+    el.className = "bx--data-table-cell bx--table-cell";
+    expect(shouldIgnoreRowClick(el)).toBe(false);
+  });
+
+  it("returns false for null target", () => {
+    expect(shouldIgnoreRowClick(null)).toBe(false);
+  });
+
+  it("returns false for target without classList (e.g. document)", () => {
+    expect(shouldIgnoreRowClick(document)).toBe(false);
+  });
+
+  it("returns false for element with empty class list", () => {
+    const el = document.createElement("div");
+    expect(shouldIgnoreRowClick(el)).toBe(false);
+  });
+});
 
 describe("rowsEqual", () => {
   it("returns true for same reference", () => {
@@ -578,6 +624,11 @@ describe("resolvePath", () => {
     expect(resolvePath(obj, "contact.company")).toBeUndefined();
   });
 
+  it("returns undefined for single-segment path not in object (segments reduce guard)", () => {
+    const obj = { a: 1 };
+    expect(resolvePath(obj, "b")).toBeUndefined();
+  });
+
   it("handles null and undefined in path resolution", () => {
     const obj = {
       contact: null,
@@ -635,7 +686,7 @@ describe("resolvePath", () => {
     expect(result3).toBe("Other Corp");
   });
 
-  it("handles cache size limit to prevent memory leaks", () => {
+  it("handles cache size limit to prevent memory leaks (also guards pathCache.delete key)", () => {
     const paths = Array.from(
       { length: 1000 + 1 },
       (_, i) => `level${i}.nested.value`,

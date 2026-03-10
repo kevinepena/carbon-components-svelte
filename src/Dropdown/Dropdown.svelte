@@ -114,6 +114,14 @@
    */
   export let virtualize = undefined;
 
+  /**
+   * Set to `true` to render the dropdown menu in a portal,
+   * allowing it to escape containers with `overflow: hidden`.
+   * When inside a Modal, defaults to `true` unless explicitly set to `false`.
+   * @type {boolean | undefined}
+   */
+  export let portalMenu = undefined;
+
   /** Set an id for the list box component */
   export let id = `ccs-${Math.random().toString(36)}`;
 
@@ -132,7 +140,13 @@
    */
   export let listRef = null;
 
-  import { afterUpdate, createEventDispatcher, onMount, tick } from "svelte";
+  import {
+    afterUpdate,
+    createEventDispatcher,
+    getContext,
+    onMount,
+    tick,
+  } from "svelte";
   import WarningAltFilled from "../icons/WarningAltFilled.svelte";
   import WarningFilled from "../icons/WarningFilled.svelte";
   import {
@@ -141,9 +155,14 @@
     ListBoxMenuIcon,
     ListBoxMenuItem,
   } from "../ListBox";
+  import { getMenuMaxHeight } from "../ListBox/list-box-utils.js";
   import { virtualize as virtualizeUtil } from "../utils/virtualize.js";
 
   const dispatch = createEventDispatcher();
+  const insideModal = getContext("carbon:Modal");
+
+  $: effectivePortalMenu =
+    portalMenu !== undefined ? portalMenu : !!insideModal;
 
   /** Default item height in pixels for virtualization */
   const DEFAULT_ITEM_HEIGHT = 40;
@@ -192,6 +211,8 @@
         ...(typeof virtualize === "object" ? virtualize : {}),
       }
     : null;
+
+  $: menuMaxHeight = getMenuMaxHeight(size);
 
   $: virtualData = virtualConfig
     ? virtualizeUtil({
@@ -389,6 +410,7 @@
 <svelte:window
   on:click={(e) => {
     if (open && ref && !ref.contains(e.target)) {
+      if (effectivePortalMenu && listRef && listRef.contains(e.target)) return;
       open = false;
     }
   }}
@@ -402,14 +424,14 @@
   class:bx--dropdown__wrapper--inline--invalid={inline && invalid}
   {...$$restProps}
 >
-  {#if labelText}
+  {#if labelText || $$slots.labelChildren}
     <label
       for={id}
       class:bx--label={true}
       class:bx--label--disabled={disabled}
       class:bx--visually-hidden={hideLabel}
     >
-      {labelText}
+      <slot name="labelChildren"> {labelText} </slot>
     </label>
   {/if}
   <ListBox
@@ -516,7 +538,11 @@
       {id}
     >
       <span class:bx--list-box__label={true}>
-        {#if selectedItem}{itemToString(selectedItem)}{:else}{label}{/if}
+        {#if selectedItem}
+          {itemToString(selectedItem)}
+        {:else}
+          {label}
+        {/if}
       </span>
       <ListBoxMenuIcon
         on:click={(e) => {
@@ -532,14 +558,22 @@
       <ListBoxMenu
         aria-labelledby={id}
         {id}
+        portal={effectivePortalMenu}
+        {open}
+        anchor={ref}
+        {direction}
         on:scroll
         on:scroll={(e) => {
           listScrollTop = e.target.scrollTop;
         }}
         bind:ref={listRef}
-        style={virtualConfig
-          ? `max-height: ${virtualConfig.containerHeight}px; overflow-y: auto;`
-          : undefined}
+        style={effectivePortalMenu
+          ? `max-height: ${virtualConfig
+              ? `${virtualConfig.containerHeight}px; overflow-y: auto`
+              : menuMaxHeight};`
+          : virtualConfig
+            ? `max-height: ${virtualConfig.containerHeight}px; overflow-y: auto;`
+            : undefined}
       >
         {#if virtualData?.isVirtualized}
           <div style="height: {virtualData.totalHeight}px; position: relative;">
@@ -558,6 +592,7 @@
                     }
                     selectedId = item.id;
                     dispatchSelect();
+                    open = false;
                     ref.focus();
                   }}
                   on:mouseenter={() => {
@@ -565,9 +600,7 @@
                     highlightedIndex = actualIndex;
                   }}
                 >
-                  <slot {item} index={actualIndex}>
-                    {itemToString(item)}
-                  </slot>
+                  <slot {item} index={actualIndex}> {itemToString(item)} </slot>
                 </ListBoxMenuItem>
               {/each}
             </div>
@@ -586,6 +619,7 @@
                 }
                 selectedId = item.id;
                 dispatchSelect();
+                open = false;
                 ref.focus();
               }}
               on:mouseenter={() => {
@@ -593,9 +627,7 @@
                 highlightedIndex = i;
               }}
             >
-              <slot {item} index={i}>
-                {itemToString(item)}
-              </slot>
+              <slot {item} index={i}> {itemToString(item)} </slot>
             </ListBoxMenuItem>
           {/each}
         {/if}

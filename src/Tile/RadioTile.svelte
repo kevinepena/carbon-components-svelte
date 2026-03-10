@@ -1,6 +1,8 @@
 <script>
   /**
    * @restProps {label}
+   * @generics {Value extends string = string} Value
+   * @template {string} Value
    */
 
   /** Set to `true` to check the tile */
@@ -15,7 +17,10 @@
   /** Set to `true` to mark the field as required */
   export let required = false;
 
-  /** Specify the value of the radio input */
+  /**
+   * Specify the value of the radio input.
+   * @type {Value}
+   */
   export let value = "";
 
   /** Specify the tabindex */
@@ -47,7 +52,7 @@
   );
 
   const { add, update, selectedValue, groupName, groupRequired } = getContext(
-    "TileGroup",
+    "carbon:TileGroup",
   ) ?? {
     add: () => {},
     groupName: readable(undefined),
@@ -85,7 +90,7 @@
       update(value);
     }
   }}
-/>
+>
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
 <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 <label
@@ -104,7 +109,5 @@
   <span class:bx--tile__checkmark={true}>
     <CheckmarkFilled aria-label={iconDescription} title={iconDescription} />
   </span>
-  <span class:bx--tile-content={true}>
-    <slot />
-  </span>
+  <span class:bx--tile-content={true}> <slot /> </span>
 </label>

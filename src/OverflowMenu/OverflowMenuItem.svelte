@@ -56,7 +56,9 @@
   import { afterUpdate, createEventDispatcher, getContext } from "svelte";
 
   const dispatch = createEventDispatcher();
-  const { focusedId, add, update, change, items } = getContext("OverflowMenu");
+  const { focusedId, add, update, change, items } = getContext(
+    "carbon:OverflowMenu",
+  );
 
   $: item = $items.find((_) => _.id === id);
 
@@ -73,6 +75,7 @@
     role: "menuitem",
     tabindex: "-1",
     class: "bx--overflow-menu-options__btn",
+    type: href ? undefined : "button",
     disabled: href ? undefined : disabled,
     href: href ? href : undefined,
     target: href && target ? target : undefined,
@@ -123,13 +126,12 @@
       }}
     >
       <slot>
-        <div class:bx--overflow-menu-options__option-content={true}>
-          {text}
-        </div>
+        <div class:bx--overflow-menu-options__option-content={true}>{text}</div>
       </slot>
     </a>
   {:else}
     <button
+      type="button"
       bind:this={ref}
       {...buttonProps}
       on:click={handleClick}
@@ -143,9 +145,7 @@
       }}
     >
       <slot>
-        <div class:bx--overflow-menu-options__option-content={true}>
-          {text}
-        </div>
+        <div class:bx--overflow-menu-options__option-content={true}>{text}</div>
       </slot>
     </button>
   {/if}

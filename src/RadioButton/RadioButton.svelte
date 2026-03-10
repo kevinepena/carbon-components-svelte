@@ -1,7 +1,12 @@
 <script>
   /**
+   * @generics {Value extends string | number = string | number} Value
+   * @template {string | number} Value
+   */
+
+  /**
    * Specify the value of the radio button.
-   * @type {string | number}
+   * @type {Value}
    */
   export let value = "";
 
@@ -47,7 +52,7 @@
     updateGroupSelection,
   } from "./RadioButtonRegistry.js";
 
-  const ctx = getContext("RadioButtonGroup");
+  const ctx = getContext("carbon:RadioButtonGroup");
 
   const { add, update, selectedValue, groupName, groupRequired, readonly } = ctx ?? {
     groupName: readable(undefined),
@@ -170,14 +175,12 @@
         checked = e.currentTarget.checked;
       }
     }}
-  />
+  >
   <label class:bx--radio-button__label={true} for={id}>
     <span class:bx--radio-button__appearance={true}></span>
     {#if labelText || $$slots.labelChildren}
       <span class:bx--visually-hidden={hideLabel}>
-        <slot name="labelChildren">
-          {labelText}
-        </slot>
+        <slot name="labelChildren"> {labelText} </slot>
       </span>
     {/if}
   </label>

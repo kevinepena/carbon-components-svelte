@@ -87,42 +87,6 @@
   }}
 />
 
-<svelte:head>
-  <!-- Tealium/GA Set up -->
-  <script type="text/javascript">
-    window._ibmAnalytics = {
-      settings: {
-        name: "CarbonSvelte",
-        isSpa: true,
-        tealiumProfileName: "ibm-web-app",
-      },
-      onLoad: [["ibmStats.pageview", []]],
-    };
-    digitalData = {
-      page: {
-        pageInfo: {
-          ibm: {
-            siteId: "IBM_" + _ibmAnalytics.settings.name,
-          },
-        },
-        category: {
-          primaryCategory: "PC100",
-        },
-      },
-    };
-  </script>
-  <script
-    type="module"
-    defer
-    src="https://1.www.s81c.com/common/carbon-for-ibm-dotcom/tag/v1/latest/footer.min.js"
-  ></script>
-  <script
-    src="//1.www.s81c.com/common/stats/ibm-common.js"
-    type="text/javascript"
-    defer
-  ></script>
-</svelte:head>
-
 <Theme
   persist
   bind:theme={$theme}
@@ -140,14 +104,11 @@
     expandedByDefault={true}
     bind:isSideNavOpen
   >
-    <svelte:fragment slot="skipToContent">
-      <SkipToContent />
-    </svelte:fragment>
+    <svelte:fragment slot="skipToContent"> <SkipToContent /> </svelte:fragment>
 
     <span slot="platform" class="platform-name" class:hidden={active}>
-      Carbon<span class="platform-name-full">&nbsp;Components</span>&nbsp;Svelte &nbsp;<code class="code-01"
-        >v{process.env.VERSION || ""}</code
-      >
+      Carbon<span class="platform-name-full">&nbsp;Components</span>&nbsp;Svelte
+      &nbsp;<code class="code-01">v{process.env.VERSION || ""}</code>
     </span>
     <HeaderUtilities>
       <HeaderSearch
@@ -268,7 +229,7 @@
     .platform-name code {
       display: none;
     }
-    
+
     .platform-name-full {
       display: none;
     }

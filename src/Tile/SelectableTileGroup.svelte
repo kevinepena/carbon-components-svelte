@@ -76,7 +76,7 @@
     }
   };
 
-  setContext("SelectableTileGroup", {
+  setContext("carbon:SelectableTileGroup", {
     selectedValues,
     groupName: groupNameReadonly,
     add,
@@ -94,7 +94,5 @@
       <slot name="legendChildren">{legendText}</slot>
     </legend>
   {/if}
-  <div>
-    <slot />
-  </div>
+  <div><slot /></div>
 </fieldset>

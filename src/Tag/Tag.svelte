@@ -1,5 +1,8 @@
 <script>
-  /** @restProps {div | span} */
+  /**
+   * @generics {Icon = any} Icon
+   * @restProps {div | span}
+   */
 
   /**
    * Specify the type of tag.
@@ -27,9 +30,9 @@
 
   /**
    * Specify the icon to render.
-   * @type {any}
+   * @type {Icon}
    */
-  export let icon = undefined;
+  export let icon = /** @type {Icon} */ (undefined);
 
   /** Set an id for the filterable tag */
   export let id = `ccs-${Math.random().toString(36)}`;
@@ -52,6 +55,7 @@
     on:mouseleave
   />
 {:else if filter}
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div
     aria-label={title}
     {id}
@@ -72,6 +76,10 @@
     class:bx--tag--high-contrast={type === "high-contrast"}
     class:bx--tag--outline={type === "outline"}
     {...$$restProps}
+    on:click
+    on:mouseover
+    on:mouseenter
+    on:mouseleave
   >
     <slot props={{ class: "bx--tag__label" }}>
       <span class:bx--tag__label={true}>{type}</span>
@@ -82,13 +90,9 @@
       class:bx--tag__close-icon={true}
       {disabled}
       {title}
-      on:click
       on:click|stopPropagation={() => {
         dispatch("close");
       }}
-      on:mouseover
-      on:mouseenter
-      on:mouseleave
     >
       <Close />
     </button>
@@ -124,14 +128,10 @@
   >
     {#if $$slots.icon || icon}
       <div class:bx--tag__custom-icon={true}>
-        <slot name="icon">
-          <svelte:component this={icon} />
-        </slot>
+        <slot name="icon"> <svelte:component this={icon} /> </slot>
       </div>
     {/if}
-    <span>
-      <slot />
-    </span>
+    <span> <slot /> </span>
   </button>
 {:else}
   <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -160,13 +160,9 @@
   >
     {#if $$slots.icon || icon}
       <div class:bx--tag__custom-icon={true}>
-        <slot name="icon">
-          <svelte:component this={icon} />
-        </slot>
+        <slot name="icon"> <svelte:component this={icon} /> </slot>
       </div>
     {/if}
-    <span>
-      <slot />
-    </span>
+    <span> <slot /> </span>
   </div>
 {/if}

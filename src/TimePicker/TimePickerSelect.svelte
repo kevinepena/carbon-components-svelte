@@ -35,7 +35,7 @@
    */
   const selectedValue = writable(value);
 
-  setContext("TimePickerSelect", { selectedValue });
+  setContext("carbon:TimePickerSelect", { selectedValue });
 
   $: selectedValue.set(value);
   $: value = $selectedValue;
@@ -54,9 +54,7 @@
 >
   {#if labelText || $$slots.labelChildren}
     <label for={id} class:bx--label={true} class:bx--visually-hidden={true}>
-      <slot name="labelChildren">
-        {labelText}
-      </slot>
+      <slot name="labelChildren"> {labelText} </slot>
     </label>
   {/if}
   <!-- svelte-ignore a11y-no-onchange -->

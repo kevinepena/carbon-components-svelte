@@ -1,6 +1,6 @@
 <script>
   /**
-   * @generics {Id = (string|number)} Id
+   * @generics {Id = (string|number), Icon = any} Id,Icon
    * @template {string | number} Id
    * @typedef {{ id: Id; text: string; disabled?: boolean; expanded?: boolean; }} TreeNode<Id>
    * @slot {{ node: TreeNode<Id> & { expanded: boolean; leaf: boolean; selected: boolean; } }}
@@ -17,9 +17,9 @@
 
   /**
    * Specify the icon to render.
-   * @type {any}
+   * @type {Icon}
    */
-  export let icon = undefined;
+  export let icon = /** @type {Icon} */ (undefined);
 
   import { afterUpdate, getContext } from "svelte";
   import CaretDown from "../icons/CaretDown.svelte";
@@ -38,10 +38,10 @@
     expandNode,
     focusNode,
     toggleNode,
-  } = getContext("TreeView");
+  } = getContext("carbon:TreeView");
 
   const offset = () => {
-    const depth = computeTreeLeafDepth(refLabel);
+    const depth = computeTreeLeafDepth(refLabel) - 1;
 
     if (parent) return depth + 1;
     if (icon) return depth + 2;
@@ -78,13 +78,9 @@
 {#if root}
   {#each nodes as child (child.id)}
     {#if Array.isArray(child.nodes)}
-      <svelte:self {...child} let:node>
-        <slot {node} />
-      </svelte:self>
+      <svelte:self {...child} let:node> <slot {node} /> </svelte:self>
     {:else}
-      <TreeViewNode leaf {...child} let:node>
-        <slot {node} />
-      </TreeViewNode>
+      <TreeViewNode leaf {...child} let:node> <slot {node} /> </TreeViewNode>
     {/if}
   {/each}
 {:else}
@@ -174,9 +170,7 @@
       <ul role="group" class:bx--tree-node__children={true}>
         {#each nodes as child (child.id)}
           {#if Array.isArray(child.nodes)}
-            <svelte:self {...child} let:node>
-              <slot {node} />
-            </svelte:self>
+            <svelte:self {...child} let:node> <slot {node} /> </svelte:self>
           {:else}
             <TreeViewNode leaf {...child} let:node>
               <slot {node}>{node.text}</slot>

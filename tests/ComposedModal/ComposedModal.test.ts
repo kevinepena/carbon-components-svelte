@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/svelte";
 import { tick } from "svelte";
 import { user } from "../setup-tests";
 import ComposedModalTest from "./ComposedModal.test.svelte";
+import ComposedModalFocusReturnTest from "./ComposedModalFocusReturn.test.svelte";
 import ComposedModalFocusTrapTest from "./ComposedModalFocusTrap.test.svelte";
 
 describe("ComposedModal", () => {
@@ -249,6 +250,112 @@ describe("ComposedModal", () => {
     expect(modal).toHaveClass("custom-container");
   });
 
+  // Regression test for https://github.com/carbon-design-system/carbon-components-svelte/issues/2671
+  it("should focus primary button when open (not close button)", async () => {
+    render(ComposedModalTest, {
+      props: {
+        open: true,
+        headerTitle: "Focus Test",
+        footerPrimaryButtonText: "Save",
+        footerSecondaryButtonText: "Cancel",
+        includeInput: false,
+      },
+    });
+
+    await tick();
+
+    const primaryButton = screen.getByRole("button", { name: "Save" });
+    expect(primaryButton).toHaveFocus();
+  });
+
+  it("returns focus to trigger when closed via close button", async () => {
+    const { container } = render(ComposedModalFocusReturnTest, {
+      props: {},
+    });
+
+    const trigger = screen.getByRole("button", { name: "Open Modal" });
+    await user.click(trigger);
+    await tick();
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    const modalWrapper = container.querySelector(".bx--modal");
+    assert(modalWrapper);
+    modalWrapper.dispatchEvent(
+      new TransitionEvent("transitionend", { propertyName: "transform" }),
+    );
+    await tick();
+
+    const closeButton = screen.getByLabelText("Close");
+    await user.click(closeButton);
+    await tick();
+
+    modalWrapper.dispatchEvent(
+      new TransitionEvent("transitionend", { propertyName: "transform" }),
+    );
+    await tick();
+
+    expect(trigger).toHaveFocus();
+  });
+
+  it("returns focus to trigger when closed via Escape key", async () => {
+    const { container } = render(ComposedModalFocusReturnTest, {
+      props: {},
+    });
+
+    const trigger = screen.getByRole("button", { name: "Open Modal" });
+    await user.click(trigger);
+    await tick();
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    const modalWrapper = container.querySelector(".bx--modal");
+    assert(modalWrapper);
+    modalWrapper.dispatchEvent(
+      new TransitionEvent("transitionend", { propertyName: "transform" }),
+    );
+    await tick();
+
+    await user.keyboard("{Escape}");
+    await tick();
+
+    modalWrapper.dispatchEvent(
+      new TransitionEvent("transitionend", { propertyName: "transform" }),
+    );
+    await tick();
+
+    expect(trigger).toHaveFocus();
+  });
+
+  it("returns focus to trigger when closed via outside click", async () => {
+    const { container } = render(ComposedModalFocusReturnTest, {
+      props: {},
+    });
+
+    const trigger = screen.getByRole("button", { name: "Open Modal" });
+    await user.click(trigger);
+    await tick();
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    const modalWrapper = container.querySelector(".bx--modal");
+    assert(modalWrapper);
+    modalWrapper.dispatchEvent(
+      new TransitionEvent("transitionend", { propertyName: "transform" }),
+    );
+    await tick();
+
+    await user.click(modalWrapper);
+    await tick();
+
+    modalWrapper.dispatchEvent(
+      new TransitionEvent("transitionend", { propertyName: "transform" }),
+    );
+    await tick();
+
+    expect(trigger).toHaveFocus();
+  });
+
   it("should respect selectorPrimaryFocus", async () => {
     render(ComposedModalTest, {
       props: {
@@ -260,6 +367,70 @@ describe("ComposedModal", () => {
 
     await tick();
     expect(screen.getByTestId("test-focus")).toHaveFocus();
+  });
+
+  it("should focus the first input when selectorPrimaryFocus is default and modal has form fields", async () => {
+    render(ComposedModalTest, {
+      props: {
+        open: true,
+        headerTitle: "Form Modal",
+        footerPrimaryButtonText: "Save",
+        footerSecondaryButtonText: "Cancel",
+      },
+    });
+
+    await tick();
+    expect(screen.getByTestId("test-focus")).toHaveFocus();
+  });
+
+  it("should allow selectorPrimaryFocus to override first-input focus", async () => {
+    render(ComposedModalTest, {
+      props: {
+        open: true,
+        headerTitle: "Override Test",
+        footerPrimaryButtonText: "Save",
+        footerSecondaryButtonText: "Cancel",
+        selectorPrimaryFocus: "button.bx--btn--primary",
+      },
+    });
+
+    await tick();
+    expect(screen.getByRole("button", { name: "Save" })).toHaveFocus();
+  });
+
+  it("should focus the cancel button when danger and modal has secondary button", async () => {
+    render(ComposedModalTest, {
+      props: {
+        open: true,
+        danger: true,
+        headerTitle: "Delete Modal",
+        footerPrimaryButtonText: "Delete",
+        footerSecondaryButtonText: "Cancel",
+        footerDanger: true,
+        includeInput: false,
+      },
+    });
+
+    await tick();
+    expect(screen.getByRole("button", { name: "Cancel" })).toHaveFocus();
+  });
+
+  it("should allow selectorPrimaryFocus to override danger focus", async () => {
+    render(ComposedModalTest, {
+      props: {
+        open: true,
+        danger: true,
+        headerTitle: "Delete Modal",
+        footerPrimaryButtonText: "Delete",
+        footerSecondaryButtonText: "Cancel",
+        footerDanger: true,
+        selectorPrimaryFocus: "button.bx--btn--danger",
+        includeInput: false,
+      },
+    });
+
+    await tick();
+    expect(screen.getByRole("button", { name: "Delete" })).toHaveFocus();
   });
 
   it("should have correct ARIA attributes", () => {
