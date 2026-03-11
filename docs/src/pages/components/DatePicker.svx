@@ -113,6 +113,14 @@ Disable the date picker to prevent user interaction.
   <DatePickerInput disabled labelText="Date of birth" placeholder="mm/dd/yyyy" />
 </DatePicker>
 
+## Readonly state
+
+Display a non-editable value by setting `readonly` to `true`.
+
+<DatePicker>
+  <DatePickerInput readonly labelText="Date of birth" placeholder="mm/dd/yyyy" />
+</DatePicker>
+
 ## Skeleton
 
 Show a loading state with the skeleton component.

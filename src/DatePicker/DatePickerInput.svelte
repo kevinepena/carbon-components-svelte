@@ -22,6 +22,9 @@
   /** Set to `true` to disable the input */
   export let disabled = false;
 
+  /** Set to `true` to use the read-only variant */
+  export let readonly = false
+
   /** Specify the helper text */
   export let helperText = "";
 
@@ -143,6 +146,7 @@
       {type}
       pattern={actualPattern}
       {disabled}
+      {readonly}
       {...$$restProps}
       value={$range
         ? $inputIds.indexOf(id) === 0

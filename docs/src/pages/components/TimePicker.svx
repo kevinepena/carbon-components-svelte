@@ -97,3 +97,18 @@ Disable the time picker to prevent user interaction by setting `disabled` to `tr
     <SelectItem value="gmt" text="GMT" />
   </TimePickerSelect>
 </TimePicker>
+
+## Readonly state
+
+Display a non-editable value by setting `readonly` to `true`.
+
+<TimePicker labelText="Cron job" placeholder="hh:mm" readonly>
+  <TimePickerSelect value="pm" readonly>
+    <SelectItem value="am" text="AM" />
+    <SelectItem value="pm" text="PM" />
+  </TimePickerSelect>
+  <TimePickerSelect value="pdt" readonly>
+    <SelectItem value="pdt" text="PDT" />
+    <SelectItem value="gmt" text="GMT" />
+  </TimePickerSelect>
+</TimePicker>

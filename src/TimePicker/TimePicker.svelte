@@ -26,6 +26,9 @@
   /** Set to `true` to disable the input */
   export let disabled = false;
 
+  /** Set to `true` to use the read-only variant */
+  export let readonly = false
+
   /** Specify the label text */
   export let labelText = "";
 
@@ -94,6 +97,7 @@
           {id}
           {name}
           {disabled}
+          {readonly}
           {...$$restProps}
           class:bx--time-picker__input-field={true}
           class:bx--text-input={true}
