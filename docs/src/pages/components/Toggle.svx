@@ -63,7 +63,9 @@ Set `disabled` to `true` to prevent user interaction.
 
 Display a non-editable value by setting `readonly` to `true`.
 
-<Toggle readonly toggled labelText="Push Notifications" />
+<Toggle readonly toggled labelText="Push Notifications Toggled" />
+
+<Toggle readonly labelText="Push Notifications Untoggled" />
 
 ## Small size
 
