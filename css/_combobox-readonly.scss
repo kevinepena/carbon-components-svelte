@@ -9,8 +9,8 @@
   //----------------------------------------------
   // Read-only
   // ---------------------------------------------
-  .#{$prefix}--combo-box--readonly,
-  .#{$prefix}--combo-box--readonly:hover {
+  .#{$prefix}--list-box.#{$prefix}--combo-box--readonly,
+  .#{$prefix}--list-box.#{$prefix}--combo-box--readonly:hover {
     background-color: transparent;
   }
 

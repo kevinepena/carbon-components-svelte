@@ -10,15 +10,33 @@
   // Read-only
   // ---------------------------------------------
 
+  .#{$prefix}--toggle--readonly .#{$prefix}--toggle__appearance {
+    cursor: default;
+  }
+
   .#{$prefix}--toggle--readonly .#{$prefix}--toggle__switch {
-    // background-color: $icon-primary;
-    
+    border: 1px solid $icon-disabled;
+    background-color: transparent;
+
     &::before {
       border: 1px solid $icon-disabled;
       background-color: transparent;
     }
     &::after {
       background-color: $icon-primary;
+    }
+  }
+
+  .#{$prefix}-toggle-input:checked {
+    
+    .#{$prefix}--toggle-input__label {
+      
+      .#{$prefix}--toggle__switch {
+        
+        &::before {
+          background-color: transparent;
+        }
+      }
     }
   }
 
@@ -30,6 +48,7 @@
     cursor: text;
     user-select: text;
   }
+
 
 }
 
