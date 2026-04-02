@@ -67,6 +67,8 @@
     class:bx--toggle-input={true}
     class:bx--toggle-input--small={size === "sm"}
     checked={toggled}
+    aria-label={readonly ? "read only" : undefined}
+    aria-disabled={readonly}
     on:click={(e) => {
       if (readonly) {
         e.preventDefault();
