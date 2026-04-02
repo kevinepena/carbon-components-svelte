@@ -191,6 +191,8 @@
                   : undefined}
             aria-invalid={invalid || undefined}
             aria-readonly={readonly || undefined}
+            aria-disabled={readonly || undefined}
+            aria-label={readonly ? "read only" : undefined}
             disabled={disabled || undefined}
             required={required || undefined}
             {id}
@@ -250,6 +252,8 @@
           disabled={disabled || undefined}
           required={required || undefined}
           aria-invalid={invalid || undefined}
+          aria-disabled={readonly || undefined}
+          aria-label={readonly ? "read only" : undefined}
           class:bx--select-input={true}
           class:bx--select-input--sm={size === "sm"}
           class:bx--select-input--xl={size === "xl"}
