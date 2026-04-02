@@ -53,7 +53,7 @@
   }
 
   const onKeyDown = (evt) => {
-    const selectAccessKeys = ['ArrowDown', 'ArrowUp', ' '];
+    const selectAccessKeys = ['ArrowDown', 'ArrowUp', ' ', 'Enter'];
     // This prevents the select from opening for the above keys
     if (readonly && selectAccessKeys.includes(evt.key)) {
       evt.preventDefault();
