@@ -481,11 +481,11 @@
                 : undefined}
           data-invalid={effectiveInvalid || undefined}
           aria-invalid={effectiveInvalid || undefined}
-          aria-label={labelText ? undefined : ariaLabel}
+          aria-label={labelText ?  `${labelText} ${readonly && ', read only'}` : ariaLabel}
+          aria-readonly={readonly}
           {disabled}
           {id}
           {name}
-          {readonly}
           {...$$restProps}
           on:change={onChange}
           on:input={onInput}
@@ -513,7 +513,9 @@
                 : undefined}
           data-invalid={effectiveInvalid || undefined}
           aria-invalid={effectiveInvalid || undefined}
-          aria-label={labelText ? undefined : ariaLabel}
+          aria-label={labelText ? `${labelText} ${readonly && ', read only'}` : ariaLabel}
+          aria-disabled={readonly}
+          aria-readonly={readonly}
           {disabled}
           {id}
           {name}
@@ -521,7 +523,6 @@
           {min}
           {step}
           value={value ?? ""}
-          {readonly}
           {...$$restProps}
           on:change={onChange}
           on:input={onInput}
