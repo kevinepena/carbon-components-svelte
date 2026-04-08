@@ -183,5 +183,8 @@
         <slot name="labelChildren"> {labelText} </slot>
       </span>
     {/if}
+    {#if readonly}
+      <span class:bx--assistive-text={true}>, read only</span>
+    {/if}
   </label>
 </div>

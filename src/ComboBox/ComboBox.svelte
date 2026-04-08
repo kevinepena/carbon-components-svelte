@@ -515,7 +515,8 @@
       {!invalid && warn && 'bx--combo-box--warning'}
       {readonly && 'bx--combo-box--readonly'}"
     id={comboId}
-    aria-label={ariaLabel}
+    aria-label={`${ariaLabel} ${readonly && ', read only'}`}
+    aria-disabled={readonly}
     {disabled}
     {invalid}
     {invalidText}
@@ -537,7 +538,7 @@
         aria-expanded={open}
         aria-activedescendant={highlightedId}
         aria-labelledby={comboId}
-        aria-disabled={disabled}
+        aria-disabled={disabled || readonly}
         aria-readonly={readonly}
         aria-controls={open ? menuId : undefined}
         aria-owns={open ? menuId : undefined}
@@ -643,10 +644,12 @@
           on:clear={clear}
           translateWithId={translateWithIdSelection}
           {disabled}
+          {readonly}
           {open}
         />
       {/if}
       <ListBoxMenuIcon
+        aria-hidden={readonly}
         on:click={(e) => {
           if (disabled || readonly) return;
           e.stopPropagation();
@@ -658,7 +661,6 @@
     </div>
     {#if open}
       <ListBoxMenu
-        aria-label={ariaLabel}
         {id}
         portal={effectivePortalMenu}
         {open}

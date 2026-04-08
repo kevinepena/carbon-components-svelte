@@ -64,7 +64,11 @@
     class:bx--tag--high-contrast={true}
     class:bx--tag--disabled={disabled}
   >
-    <span class:bx--tag__label={true} title={selectionCount}>
+    <span
+      class:bx--tag__label={true}
+      title={selectionCount}
+      aria-hidden={readonly}
+    >
       {selectionCount}
     </span>
     <div
@@ -73,7 +77,7 @@
       tabindex="-1"
       class:bx--tag__close-icon={true}
       on:click|preventDefault|stopPropagation={(e) => {
-        if (!disabled) {
+        if (!disabled && !readonly) {
           dispatch("clear", e);
         }
       }}
@@ -85,6 +89,7 @@
       {disabled}
       aria-disabled={readonly ? true : undefined}
       aria-label={buttonLabel}
+      aria-hidden={readonly}
       title={description}
     >
       <Close />
@@ -100,6 +105,7 @@
     class:bx--list-box__selection={true}
     class:bx--tag--filter={selectionCount}
     class:bx--list-box__selection--multi={selectionCount}
+    aria-hidden={readonly}
     {...$$restProps}
     on:click|preventDefault|stopPropagation={(e) => {
       if (!disabled) {

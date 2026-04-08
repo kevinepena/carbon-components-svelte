@@ -483,9 +483,11 @@
           aria-invalid={effectiveInvalid || undefined}
           aria-label={labelText ?  `${labelText} ${readonly && ', read only'}` : ariaLabel}
           aria-readonly={readonly}
+          aria-disabled={readonly}
           {disabled}
           {id}
           {name}
+          {readonly}
           {...$$restProps}
           on:change={onChange}
           on:input={onInput}
@@ -516,6 +518,7 @@
           aria-label={labelText ? `${labelText} ${readonly && ', read only'}` : ariaLabel}
           aria-disabled={readonly}
           aria-readonly={readonly}
+          {readonly}
           {disabled}
           {id}
           {name}

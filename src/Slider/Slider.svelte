@@ -188,6 +188,9 @@
     class:bx--visually-hidden={hideLabel}
   >
     <slot name="labelChildren"> {labelText} </slot>
+    {#if readonly}
+      <span class:bx--assistive-text={true}>, read only</span>
+    {/if}
   </label>
   <div
     class:bx--slider-container={true}
@@ -230,6 +233,8 @@
         aria-valuemax={max}
         aria-valuemin={min}
         aria-valuenow={value}
+        aria-disabled={readonly}
+        aria-readonly={readonly}
         aria-labelledby={labelId}
         aria-describedby={invalid
           ? errorId
@@ -266,6 +271,7 @@
         {value}
         aria-labelledby={$$props["aria-label"] ? undefined : labelId}
         aria-label={$$props["aria-label"] ?? "Slider number input"}
+        aria-disabled={readonly}
         {disabled}
         {readonly}
         {required}

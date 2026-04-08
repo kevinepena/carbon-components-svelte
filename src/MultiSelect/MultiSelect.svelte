@@ -507,7 +507,8 @@
   <ListBox
     role={undefined}
     id={comboId}
-    aria-label={ariaLabel}
+    aria-label={`${ariaLabel} ${readonly && ', read only'}`}
+    aria-disabled={readonly}
     {disabled}
     {invalid}
     {invalidText}
@@ -540,7 +541,6 @@
             selectionCount={checked.length}
             on:clear
             on:clear={() => {
-              if (readonly) return
               selectedIds = [];
               sortedItems = sortedItems.map((item) => ({
                 ...item,
@@ -562,7 +562,7 @@
           aria-expanded={open}
           aria-activedescendant={highlightedId}
           aria-labelledby={comboId}
-          aria-disabled={disabled}
+          aria-disabled={disabled || readonly}
           aria-controls={open ? menuId : undefined}
           aria-owns={open ? menuId : undefined}
           class:bx--text-input={true}
@@ -635,6 +635,7 @@
           />
         {/if}
         <ListBoxMenuIcon
+          aria-hidden={readonly}
           on:click={(e) => {
             if (disabled) return;
             e.stopPropagation();
@@ -643,6 +644,9 @@
           {translateWithId}
           {open}
         />
+        {#if readonly}
+          <span class:bx--assistive-text={true}>read only</span>
+        {/if}
       </div>
     {:else}
       <ListBoxField
@@ -652,8 +656,10 @@
         aria-activedescendant={highlightedId}
         aria-controls={open ? menuId : undefined}
         aria-owns={open ? menuId : undefined}
+        aria-disabled={disabled || readonly}
         on:click={onClick}
         on:keydown={(e) => {
+          if (readonly) return
           const key = e.key;
           if ([" ", "ArrowUp", "ArrowDown"].includes(key)) {
             e.preventDefault();
@@ -704,7 +710,10 @@
           />
         {/if}
         <span class:bx--list-box__label={true}>{label}</span>
-        <ListBoxMenuIcon {open} {translateWithId} />
+        <ListBoxMenuIcon aria-hidden={readonly} {open} {translateWithId} />
+        {#if readonly}
+          <span class:bx--assistive-text={true}>read only</span>
+        {/if}
       </ListBoxField>
     {/if}
     <div style:display={open || effectivePortalMenu ? "block" : "none"}>

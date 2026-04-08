@@ -478,6 +478,7 @@
       tabindex="0"
       aria-expanded={open}
       aria-disabled={readonly ? true : undefined}
+      aria-label={readonly ? `${selectedItem && itemToString(selectedItem)}, read only `  : undefined}
       on:keydown={(e) => {
         if (["Enter", "ArrowDown", "ArrowUp"].includes(e.key)) {
           e.preventDefault();
