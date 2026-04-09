@@ -646,6 +646,11 @@
         />
         {#if readonly}
           <span class:bx--assistive-text={true}>read only</span>
+          {#if checked.length > 0}
+            <span class:bx--assistive-text={true}>Selected Items,
+              {#each checked as item} {item.text}, {/each}
+            </span>
+          {/if}
         {/if}
       </div>
     {:else}
@@ -713,6 +718,11 @@
         <ListBoxMenuIcon aria-hidden={readonly} {open} {translateWithId} />
         {#if readonly}
           <span class:bx--assistive-text={true}>read only</span>
+          {#if checked.length > 0}
+            <span class:bx--assistive-text={true}>Selected Items,
+              {#each checked as item} {item.text}, {/each}
+            </span>
+          {/if}
         {/if}
       </ListBoxField>
     {/if}
